@@ -1,0 +1,24 @@
+CODEGEN_INSTALLATION_DIR = $(ti.targets.arm.elf.M4)
+CC = $(ti.targets.arm.elf.M4)/bin/armcl
+LD = $(ti.targets.arm.elf.M4)/bin/armcl -z
+
+KERNEL_BUILD :=  $(SIMPLELINK_CC32XX_SDK_INSTALL_DIR)/kernel/tirtos/builds/CC3220S_LAUNCHXL/release
+
+CONFIGPKG = $(KERNEL_BUILD)/ccs
+
+CFLAGS = -eo=.o -mv7M4 --float_support=vfplib --abi=eabi -me -ms --c99 "-I$(SIMPLELINK_CC32XX_SDK_INSTALL_DIR)/source" "-I$(SIMPLELINK_CC32XX_SDK_INSTALL_DIR)/source/ti/posix/ccs" -DSL_FULL -DSL_PLATFORM_MULTI_THREADED -DNET_SL --silicon_version=7M4 --code_state=16 --little_endian --display_error_number --diag_warning=255 --diag_wrap=off --gen_func_subsections=on --float_support=vfplib --symdebug:dwarf
+
+LFLAGS = "-l$(SIMPLELINK_CC32XX_SDK_INSTALL_DIR)/source/ti/net/sntp/lib/ccs/m4/sntp_release.a" "-l$(SIMPLELINK_CC32XX_SDK_INSTALL_DIR)/source/ti/net/lib/ccs/m4/slnetsock_release.a" "-l$(SIMPLELINK_CC32XX_SDK_INSTALL_DIR)/source/ti/net/http/lib/ccs/m4/httpclient_release.a" -l"$(SIMPLELINK_CC32XX_SDK_INSTALL_DIR)/source/ti/drivers/net/wifi/ccs/rtos/simplelink.a" -l"$(SIMPLELINK_CC32XX_SDK_INSTALL_DIR)/source/ti/drivers/net/wifi/slnetif/ccs/Release/slnetifwifi.a" "-l$(SIMPLELINK_CC32XX_SDK_INSTALL_DIR)/source/ti/drivers/lib/drivers_cc32xx.aem4" "-l$(SIMPLELINK_CC32XX_SDK_INSTALL_DIR)/kernel/tirtos/packages/ti/dpl/lib/dpl_cc32xx.aem4" "-l$(SIMPLELINK_CC32XX_SDK_INSTALL_DIR)/source/ti/devices/cc32xx/driverlib/ccs/Release/driverlib.a" --rom_model --warn_sections -i$(CODEGEN_INSTALLATION_DIR)/lib --reread_libs -llibc.a
+
+%.o : %.c
+	$(CC) $(CFLAGS) -c $<
+
+ifneq (,$(wildcard $(XDC_INSTALL_DIR)/xdc.exe))
+    # use these on Windows
+    RM      = $(XDC_INSTALL_DIR)/bin/rm -f
+    RMDIR   = $(XDC_INSTALL_DIR)/bin/rm -rf
+else
+    # use these on Linux
+    RM      = rm -f
+    RMDIR   = rm -rf
+endif
