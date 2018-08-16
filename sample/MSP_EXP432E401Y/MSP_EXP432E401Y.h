@@ -90,6 +90,17 @@ typedef enum MSP_EXP432E401Y_ADCBuf0ChannelName {
 } MSP_EXP432E401Y_ADCBuf0ChannelName;
 
 /*!
+ *  @def    MSP_EXP432E401Y_CANName
+ *  @brief  Enum of CAN controllers on the MSP_EXP432E401Y dev board
+ */
+typedef enum MSP_EXP432E401Y_CANName {
+    MSP_EXP432E401Y_CAN0 = 0,
+    MSP_EXP432E401Y_CAN1,
+
+    MSP_EXP432E401Y_CANCOUNT
+} MSP_EXP432E401Y_CANName;
+
+/*!
  *  @def    MSP_EXP432E401Y_GPIOName
  *  @brief  Enum of LED names on the MSP_EXP432E401Y dev board
  */
@@ -103,7 +114,7 @@ typedef enum MSP_EXP432E401Y_GPIOName {
 
     MSP_EXP432E401Y_SDSPI_CS,
 
-    /* Sharp 96x96 LCD Pins */
+    /* Sharp LCD Pins */
     MSP_EXP432E401Y_LCD_CS,
     MSP_EXP432E401Y_LCD_POWER,
     MSP_EXP432E401Y_LCD_ENABLE,
@@ -191,6 +202,7 @@ typedef enum MSP_EXP432E401Y_TimerName {
  */
 typedef enum MSP_EXP432E401Y_UARTName {
     MSP_EXP432E401Y_UART0 = 0,
+    MSP_EXP432E401Y_UART2,
 
     MSP_EXP432E401Y_UARTCOUNT
 } MSP_EXP432E401Y_UARTName;

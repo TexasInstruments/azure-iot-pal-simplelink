@@ -93,17 +93,17 @@ typedef enum CC3220S_LAUNCHXL_GPIOName {
     CC3220S_LAUNCHXL_GPIO_SW3,
     CC3220S_LAUNCHXL_SPI_MASTER_READY,
     CC3220S_LAUNCHXL_SPI_SLAVE_READY,
-    CC3220S_LAUNCHXL_GPIO_LED_D7,
+    CC3220S_LAUNCHXL_GPIO_LED_D10,
 
     /*
-     *  CC3220S_LAUNCHXL_GPIO_LED_D5 and CC3220S_LAUNCHXL_GPIO_LED_D6 are shared with the
+     *  CC3220S_LAUNCHXL_GPIO_LED_D8 and CC3220S_LAUNCHXL_GPIO_LED_D9 are shared with the
      *  I2C and PWM peripherals. In order for those examples to work, these
      *  LEDs are  taken out of gpioPinCOnfig[]
      */
-    /* CC3220S_LAUNCHXL_GPIO_LED_D6, */
-    /* CC3220S_LAUNCHXL_GPIO_LED_D5, */
+    /* CC3220S_LAUNCHXL_GPIO_LED_D9, */
+    /* CC3220S_LAUNCHXL_GPIO_LED_D8, */
 
-    /* Sharp 96x96 LCD Pins */
+    /* Sharp LCD Pins */
     CC3220S_LAUNCHXL_LCD_CS,
     CC3220S_LAUNCHXL_LCD_POWER,
     CC3220S_LAUNCHXL_LCD_ENABLE,

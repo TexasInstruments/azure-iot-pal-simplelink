@@ -64,12 +64,12 @@ var Pkg = xdc.useModule('xdc.bld.PackageContents');
  * Linux86 => -std=c99 for (at least sscanf() and strtof())
  */
 var ccOpts = {
-    "ti.targets.arm.elf.M4"           : " -ms -g --c99 -DNO_LOGGING",
-    "ti.targets.arm.elf.M4F"          : " -ms -g --c99 -DNO_LOGGING",
-    "iar.targets.arm.M4"              : "-DNO_LOGGING",
-    "iar.targets.arm.M4F"             : "-DNO_LOGGING",
-    "gnu.targets.arm.M4"              : " -std=c99 -DNO_LOGGING",
-    "gnu.targets.arm.M4F"             : " -std=c99 -DNO_LOGGING",
+    "ti.targets.arm.elf.M4"           : " -ms -g --c99",
+    "ti.targets.arm.elf.M4F"          : " -ms -g --c99",
+    "iar.targets.arm.M4"              : "",
+    "iar.targets.arm.M4F"             : "",
+    "gnu.targets.arm.M4"              : " -std=c99",
+    "gnu.targets.arm.M4F"             : " -std=c99",
 };
 
 var lnkOpts = {

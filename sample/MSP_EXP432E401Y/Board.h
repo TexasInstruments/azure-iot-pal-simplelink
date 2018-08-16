@@ -53,6 +53,9 @@ extern "C" {
 #define Board_ADCBUF0CHANNEL3       MSP_EXP432E401Y_ADCBUF0CHANNEL3
 #define Board_ADCBUF0CHANNEL4       MSP_EXP432E401Y_ADCBUF0CHANNEL4
 
+#define Board_CAN0                  MSP_EXP432E401Y_CAN0
+#define Board_CAN1                  MSP_EXP432E401Y_CAN1
+
 #define Board_GPIO_LED_ON           MSP_EXP432E401Y_GPIO_LED_ON
 #define Board_GPIO_LED_OFF          MSP_EXP432E401Y_GPIO_LED_OFF
 #define Board_GPIO_LED0             MSP_EXP432E401Y_GPIO_D1
@@ -86,6 +89,7 @@ extern "C" {
 #define Board_TIMER2                MSP_EXP432E401Y_TIMER2
 
 #define Board_UART0                 MSP_EXP432E401Y_UART0
+#define Board_UART2                 MSP_EXP432E401Y_UART2
 
 #define Board_WATCHDOG0             MSP_EXP432E401Y_WATCHDOG0
 

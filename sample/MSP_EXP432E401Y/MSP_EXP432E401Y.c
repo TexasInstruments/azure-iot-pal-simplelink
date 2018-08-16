@@ -188,6 +188,61 @@ const ADCBuf_Config ADCBuf_config[MSP_EXP432E401Y_ADCBUFCOUNT] = {
 const uint_least8_t ADCBuf_count = MSP_EXP432E401Y_ADCBUFCOUNT;
 
 /*
+ *  =============================== CAN ===============================
+ */
+#include <ti/drivers/CAN.h>
+#include <ti/drivers/can/CANMSP432E4.h>
+
+CANMSP432E4_Object canMSP432E4Objects[MSP_EXP432E401Y_CANCOUNT];
+CAN_Frame canMSP432E4RxBuffer[MSP_EXP432E401Y_CANCOUNT][4];
+CAN_Frame canMSP432E4TxBuffer[MSP_EXP432E401Y_CANCOUNT][4];
+
+/* CAN configuration structure */
+const CANMSP432E4_HWAttrs canMSP432E4HWAttrs[MSP_EXP432E401Y_CANCOUNT] = {
+    {
+        .baseAddr = CAN0_BASE,
+        .intNum = INT_CAN0,
+        .intPriority = (~0),
+        .rxPin = CANMSP432E4_PA0_CAN0RX,
+        .txPin = CANMSP432E4_PA1_CAN0TX,
+        .baudRate = 125000,
+        .errorFxn = NULL
+    },
+    {
+        .baseAddr = CAN1_BASE,
+        .intNum = INT_CAN1,
+        .intPriority = (~0),
+        .rxPin = CANMSP432E4_PB0_CAN1RX,
+        .txPin = CANMSP432E4_PB1_CAN1TX,
+        .baudRate = 125000,
+        .errorFxn = NULL
+    }
+};
+
+const CAN_Config CAN_config[MSP_EXP432E401Y_CANCOUNT] = {
+    {
+        .fxnTablePtr = &CANMSP432E4_fxnTable,
+        .object = &canMSP432E4Objects[MSP_EXP432E401Y_CAN0],
+        .hwAttrs = &canMSP432E4HWAttrs[MSP_EXP432E401Y_CAN0],
+        .rxBufPtr = canMSP432E4RxBuffer[MSP_EXP432E401Y_CAN0],
+        .txBufPtr = canMSP432E4TxBuffer[MSP_EXP432E401Y_CAN0],
+        .rxBufSize = sizeof(canMSP432E4RxBuffer[MSP_EXP432E401Y_CAN0]),
+        .txBufSize = sizeof(canMSP432E4TxBuffer[MSP_EXP432E401Y_CAN0]),
+    },
+    {
+        .fxnTablePtr = &CANMSP432E4_fxnTable,
+        .object = &canMSP432E4Objects[MSP_EXP432E401Y_CAN1],
+        .hwAttrs = &canMSP432E4HWAttrs[MSP_EXP432E401Y_CAN1],
+        .rxBufPtr = canMSP432E4RxBuffer[MSP_EXP432E401Y_CAN1],
+        .txBufPtr = canMSP432E4TxBuffer[MSP_EXP432E401Y_CAN1],
+        .rxBufSize = sizeof(canMSP432E4RxBuffer[MSP_EXP432E401Y_CAN1]),
+        .txBufSize = sizeof(canMSP432E4TxBuffer[MSP_EXP432E401Y_CAN1]),
+    }
+};
+
+const uint_least8_t CAN_count = MSP_EXP432E401Y_CANCOUNT;
+
+/*
  *  ============================= Display =============================
  */
 #include <ti/display/Display.h>
@@ -195,9 +250,8 @@ const uint_least8_t ADCBuf_count = MSP_EXP432E401Y_ADCBUFCOUNT;
 #include <ti/display/DisplaySharp.h>
 #define MAXPRINTLEN 1024
 
-#ifndef BOARD_DISPLAY_SHARP_SIZE
-#define BOARD_DISPLAY_SHARP_SIZE    96
-#endif
+/* This value can be changed to 96 for use with the 430BOOST-SHARP96 BoosterPack. */
+#define BOARD_DISPLAY_SHARP_SIZE    128
 
 DisplayUart_Object displayUartObject;
 DisplaySharp_Object    displaySharpObject;
@@ -761,6 +815,19 @@ const UARTMSP432E4_HWAttrs uartMSP432E4HWAttrs[MSP_EXP432E401Y_UARTCOUNT] = {
         .ctsPin = UARTMSP432E4_PIN_UNASSIGNED,
         .rtsPin = UARTMSP432E4_PIN_UNASSIGNED,
         .errorFxn = NULL
+    },
+    {
+        .baseAddr = UART2_BASE,
+        .intNum = INT_UART2,
+        .intPriority = (~0),
+        .flowControl = UARTMSP432E4_FLOWCTRL_NONE,
+        .ringBufPtr  = uartMSP432E4RingBuffer[MSP_EXP432E401Y_UART2],
+        .ringBufSize = sizeof(uartMSP432E4RingBuffer[MSP_EXP432E401Y_UART2]),
+        .rxPin = UARTMSP432E4_PD4_U2RX,
+        .txPin = UARTMSP432E4_PD5_U2TX,
+        .ctsPin = UARTMSP432E4_PIN_UNASSIGNED,
+        .rtsPin = UARTMSP432E4_PIN_UNASSIGNED,
+        .errorFxn = NULL
     }
 };
 
@@ -769,6 +836,11 @@ const UART_Config UART_config[MSP_EXP432E401Y_UARTCOUNT] = {
         .fxnTablePtr = &UARTMSP432E4_fxnTable,
         .object = &uartMSP432E4Objects[MSP_EXP432E401Y_UART0],
         .hwAttrs = &uartMSP432E4HWAttrs[MSP_EXP432E401Y_UART0]
+    },
+    {
+        .fxnTablePtr = &UARTMSP432E4_fxnTable,
+        .object = &uartMSP432E4Objects[MSP_EXP432E401Y_UART2],
+        .hwAttrs = &uartMSP432E4HWAttrs[MSP_EXP432E401Y_UART2]
     }
 };
 

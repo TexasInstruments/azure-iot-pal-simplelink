@@ -26,6 +26,13 @@
 #include "azure_c_shared_utility/crt_abstractions.h"
 #include "azure_c_shared_utility/threadapi.h"
 
+/*
+ * Receive buffer size. Set to 64 as it seems to be the size used in most of
+ * the other reference implementations. Increasing this would increase
+ * performance at the cost of stack space requirement.
+ */
+#define RECV_BUFFER_SIZE 64
+
 typedef enum TLSIO_STATE_ENUM_TAG
 {
     TLSIO_STATE_NOT_OPEN,
@@ -65,16 +72,6 @@ static const IO_INTERFACE_DESCRIPTION tlsio_sl_interface_description =
     tlsio_sl_dowork,
     tlsio_sl_setoption
 };
-
-static int getErrno(int ret)
-{
-    if (ret == -1) {
-        return (errno);
-    }
-    else {
-        return (ret);
-    }
-}
 
 static int init_sockaddr(struct sockaddr *addr, int port, const char *hostname)
 {
@@ -231,7 +228,7 @@ int tlsio_sl_open(CONCRETE_IO_HANDLE tls_io,
                             SLNETSOCK_SEC_ATTRIB_PEER_ROOT_CA, SL_SSL_CA_CERT,
                             sizeof(SL_SSL_CA_CERT));
                     if (status < 0) {
-                        LogError("SlNetSock_secAttribCreate failed");
+                        LogError("SlNetSock_secAttribSet failed");
                         error = true;
                         goto cleanup;
                     }
@@ -308,6 +305,7 @@ int tlsio_sl_close(CONCRETE_IO_HANDLE tls_io,
     int result = 0;
 
     if (tls_io == NULL) {
+        LogError("NULL tls_io");
         result = __FAILURE__;
     }
     else {
@@ -315,6 +313,7 @@ int tlsio_sl_close(CONCRETE_IO_HANDLE tls_io,
 
         if ((instance->tlsio_state == TLSIO_STATE_NOT_OPEN) ||
             (instance->tlsio_state == TLSIO_STATE_CLOSING)) {
+            LogError("Invalid state in tlsio_sl_close");
             result = __FAILURE__;
         }
         else {
@@ -339,12 +338,14 @@ int tlsio_sl_send(CONCRETE_IO_HANDLE tls_io, const void* buffer, size_t size,
     int result;
 
     if (tls_io == NULL) {
+        LogError("NULL tls_io");
         result = __FAILURE__;
     }
     else {
         TLS_IO_INSTANCE* instance = (TLS_IO_INSTANCE*)tls_io;
 
         if (instance->tlsio_state != TLSIO_STATE_OPEN) {
+            LogError("Invalid state in tlsio_sl_send");
             result = __FAILURE__;
         }
         else {
@@ -387,7 +388,7 @@ void tlsio_sl_dowork(CONCRETE_IO_HANDLE tls_io)
 
         if ((tls_io_instance->tlsio_state != TLSIO_STATE_NOT_OPEN) &&
             (tls_io_instance->tlsio_state != TLSIO_STATE_ERROR)) {
-            unsigned char buffer[64];
+            unsigned char buffer[RECV_BUFFER_SIZE];
             int rcv_bytes = 1;
 
             while (rcv_bytes > 0) {

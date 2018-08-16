@@ -47,8 +47,9 @@ var SRCS_PAL = [
     "httpapi_sl.c",
     "platform_sl.c",
     "tlsio_sl.c",
-    "tickcounter_sl.c",
-    "threadapi_pthreads_sl.c"
+    "threadapi_pthreads_sl.c",
+    "socketio_sl.c",
+    "parson_sl.c"
 ]
 
 /* Paths to external source libraries */
@@ -56,7 +57,7 @@ xdcargs = java.lang.System.getenv("XDCARGS").split(" ");
 
 var slIncs = "";
 var incs = "";
-var palIncs = "-I../../pal/inc -I../../sdk/c-utility/inc ";
+var palIncs = "-I../../pal/inc -I../../sdk/c-utility/inc -I../../sdk/deps/parson ";
 
 /* Parse out the XDCARGS options for the include source paths */
 for (x = 0; x < xdcargs.length; x++) {
@@ -100,6 +101,9 @@ for (var i = 0; i < Build.targets.length; i++) {
         /* Add back unused warnings in PAL */
         if (target.$name.split(".")[0] == "gnu") {
             extraOpts += " -Wunused ";
+        }
+        if (profile == "release") {
+            extraOpts += " -DNO_LOGGING ";
         }
         Pkg.addLibrary(libdir + "/pal_sl_" + profile,
             target, {

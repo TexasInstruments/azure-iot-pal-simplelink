@@ -13,6 +13,8 @@
 #include "azure_c_shared_utility/httpapi.h"
 #include "azure_c_shared_utility/strings.h"
 #include "azure_c_shared_utility/xlogging.h"
+#include "azure_c_shared_utility/crt_abstractions.h"
+#include "azure_c_shared_utility/shared_util_options.h"
 
 #define CONTENT_BUF_LEN     (128 * 10)
 #define HTTP_SECURE_PORT    443
@@ -137,26 +139,32 @@ void HTTPAPI_Deinit(void)
 HTTP_HANDLE HTTPAPI_CreateConnection(const char* hostName)
 {
     bool error = false;
-    HTTPAPI_Object * apiH;
+    HTTPAPI_Object * apiH = NULL;
     int16_t statusCode;
+
+    if (hostName == NULL) {
+        LogError("Error: hostName is NULL");
+        error = true;
+        goto error;
+    }
 
     apiH = calloc(sizeof(HTTPAPI_Object), 1);
     if (!apiH) {
-        LogError("Error creating HTTPAPI object\n");
+        LogError("Error creating HTTPAPI object");
         error = true;
         goto error;
     }
 
     apiH->cli = HTTPClient_create(&statusCode, 0);
     if (statusCode < 0) {
-        LogError("Error creating http client\n");
+        LogError("Error creating http client");
         error = true;
         goto error;
     }
 
     apiH->prefixedHostName = malloc(strlen(hostName) + 9);  /* https:// */
     if (!apiH->prefixedHostName) {
-        LogError("Error creating hostname buffer\n");
+        LogError("Error creating hostname buffer");
         error = true;
         goto error;
     }
@@ -168,17 +176,15 @@ HTTP_HANDLE HTTPAPI_CreateConnection(const char* hostName)
     strcat(apiH->prefixedHostName, hostName);
 
 error:
-    if (error) {
+    if ((error) && (apiH != NULL)) {
         if (apiH->cli != NULL) {
             HTTPClient_destroy(apiH->cli);
         }
         if (apiH->prefixedHostName != NULL) {
             free(apiH->prefixedHostName);
         }
-        if (apiH != NULL) {
-            free(apiH);
-            apiH = NULL;
-        }
+        free(apiH);
+        apiH = NULL;
     }
 
     return ((HTTP_HANDLE)apiH);
@@ -188,7 +194,7 @@ void HTTPAPI_CloseConnection(HTTP_HANDLE handle)
 {
     HTTPAPI_Object * apiH = (HTTPAPI_Object *)handle;
 
-    if (apiH->cli != NULL) {
+    if ((apiH) && (apiH->cli != NULL)) {
         if (apiH->isConnected) {
             HTTPClient_disconnect(apiH->cli);
         }
@@ -217,22 +223,25 @@ HTTPAPI_RESULT HTTPAPI_ExecuteRequest(HTTP_HANDLE handle,
         BUFFER_HANDLE responseContent)
 {
     HTTPAPI_Object * apiH = (HTTPAPI_Object *)handle;
-    HTTPClient_Handle cli = apiH->cli;
+    HTTPClient_Handle cli;
     int i;
     int ret;
+    HTTPAPI_RESULT result = HTTPAPI_OK;
+    HTTP_HEADERS_RESULT hResult = HTTP_HEADERS_OK;
     int offset;
     size_t cnt;
-    char contentBuf[CONTENT_BUF_LEN] = {0};
+    char *contentBuf = NULL;
     uint32_t contentBufLen = CONTENT_BUF_LEN;
     char *hname;
     char *hvalue;
+    unsigned char *buffer = NULL;
     const char *method;
     bool moreFlag;
     HTTPClient_extSecParams esParams = {NULL, NULL, SL_SSL_CA_CERT};
 
     method = getHttpMethod(requestType);
 
-    if ((cli == NULL) || (method == NULL) || (relativePath == NULL)
+    if ((handle == NULL) || (method == NULL) || (relativePath == NULL)
             || (statusCode == NULL) || (responseHeadersHandle == NULL)) {
         LogError("Invalid arguments: handle=%p, requestType=%d, "
             "relativePath=%p, statusCode=%p, responseHeadersHandle=%p",
@@ -244,6 +253,12 @@ HTTPAPI_RESULT HTTPAPI_ExecuteRequest(HTTP_HANDLE handle,
             != HTTP_HEADERS_OK) {
         LogError("Cannot get header count");
         return (HTTPAPI_QUERY_HEADERS_FAILED);
+    }
+
+    cli = apiH->cli;
+    if (cli == NULL) {
+        LogError("Invalid argument. Client is null.");
+        return (HTTPAPI_INVALID_ARG);
     }
 
     /*
@@ -291,9 +306,11 @@ HTTPAPI_RESULT HTTPAPI_ExecuteRequest(HTTP_HANDLE handle,
                 }
             }
         }
+        else {
+            LogError("Failed to split header");
+        }
 
         free(hname);
-        hname = NULL;
 
         if (ret < 0) {
             return (HTTPAPI_SEND_REQUEST_FAILED);
@@ -314,6 +331,13 @@ HTTPAPI_RESULT HTTPAPI_ExecuteRequest(HTTP_HANDLE handle,
     cnt = 0;
     offset = 0;
 
+    contentBuf = (char *)malloc(CONTENT_BUF_LEN);
+    if (contentBuf == NULL) {
+        LogError("Failed allocating memory for contentBuf");
+        result = HTTPAPI_ALLOC_FAILED;
+        goto headersDone;
+    }
+
     /*
      * TODO: If there is more than one header of the same name, is this
      * an issue with HTTPClient?
@@ -324,12 +348,12 @@ HTTPAPI_RESULT HTTPAPI_ExecuteRequest(HTTP_HANDLE handle,
         if (ret == HTTPClient_EGETOPTBUFSMALL) {
             /* TODO: content buffer is too small. Enlarge and try again?? */
             LogError("Content buffer is too small for incoming header");
-            ret = HTTPAPI_HTTP_HEADERS_FAILED;
+            result = HTTPAPI_HTTP_HEADERS_FAILED;
             goto headersDone;
         }
         else if (ret < 0) {
             LogError("Failed to get header, ret=%d", ret);
-            ret = HTTPAPI_HTTP_HEADERS_FAILED;
+            result = HTTPAPI_HTTP_HEADERS_FAILED;
             goto headersDone;
         }
         else if (contentBufLen == 0) {
@@ -337,64 +361,78 @@ HTTPAPI_RESULT HTTPAPI_ExecuteRequest(HTTP_HANDLE handle,
             continue;
         }
 
-        ret = HTTPHeaders_AddHeaderNameValuePair(responseHeadersHandle,
+        hResult = HTTPHeaders_AddHeaderNameValuePair(responseHeadersHandle,
                 HEADER_TO_STR(i), contentBuf);
-        if (ret != HTTP_HEADERS_OK) {
+        if (hResult != HTTP_HEADERS_OK) {
             LogError("Adding the response header failed");
-            ret = HTTPAPI_HTTP_HEADERS_FAILED;
+            result = HTTPAPI_HTTP_HEADERS_FAILED;
             goto headersDone;
         }
-        offset = 0;
     }
 
 headersDone:
-    hname = NULL;
-    if (ret != 0) {
-        return ((HTTPAPI_RESULT)ret);
+    if (result != HTTPAPI_OK) {
+        if (contentBuf) {
+            free(contentBuf);
+        }
+        return (result);
     }
 
     /* Get response body */
-    if (responseContent != NULL) {
-        offset = 0;
-        cnt = 0;
+    offset = 0;
+    cnt = 0;
 
-        do {
-            ret = HTTPClient_readResponseBody(cli, contentBuf, CONTENT_BUF_LEN,
-                    &moreFlag);
+    do {
+        /*
+         * Note we would always try to read the response body, even when
+         * responseContent is NULL, as it is still possible for the other
+         * end to send a body in the latter case based on feedback from
+         * Microsoft. This allows us to discard any unexpected body.
+         */
+        ret = HTTPClient_readResponseBody(cli, contentBuf, CONTENT_BUF_LEN,
+                &moreFlag);
 
-            if (ret < 0) {
-                LogError("HTTP read response body failed, ret=%d", ret);
-                ret = HTTPAPI_RECEIVE_RESPONSE_FAILED;
+        if (ret < 0) {
+            LogError("HTTP read response body failed, ret=%d", ret);
+            result = HTTPAPI_RECEIVE_RESPONSE_FAILED;
+            goto contentDone;
+        }
+
+        if ((ret != 0) && (responseContent != NULL)) {
+            cnt = ret;
+            ret = BUFFER_enlarge(responseContent, cnt);
+            if (ret != 0) {
+                LogError("Failed enlarging response buffer");
+                result = HTTPAPI_ALLOC_FAILED;
                 goto contentDone;
             }
 
+            ret = BUFFER_content(responseContent,
+                    (const unsigned char **)&buffer);
             if (ret != 0) {
-                cnt = ret;
-                ret = BUFFER_enlarge(responseContent, cnt);
-                if (ret != 0) {
-                    LogError("Failed enlarging response buffer");
-                    ret = HTTPAPI_ALLOC_FAILED;
-                    goto contentDone;
-                }
-
-                ret = BUFFER_content(responseContent,
-                        (const unsigned char **)&hname);
-                if (ret != 0) {
-                    LogError("Failed getting the response buffer content");
-                    ret = HTTPAPI_ALLOC_FAILED;
-                    goto contentDone;
-                }
-
-                memcpy(hname + offset, contentBuf, cnt);
-                offset += cnt;
+                LogError("Failed getting the response buffer content");
+                result = HTTPAPI_ALLOC_FAILED;
+                goto contentDone;
             }
-        } while (moreFlag);
 
-    contentDone:
-        if (ret < 0) {
-            BUFFER_unbuild(responseContent);
-            return ((HTTPAPI_RESULT)ret);
+            memcpy(buffer + offset, contentBuf, cnt);
+            offset += cnt;
         }
+    } while (moreFlag);
+
+contentDone:
+    if (result != HTTPAPI_OK) {
+        if (responseContent != NULL) {
+            BUFFER_unbuild(responseContent);
+        }
+        if (contentBuf) {
+            free(contentBuf);
+        }
+        return (result);
+    }
+
+    if (contentBuf) {
+        free(contentBuf);
     }
 
     return (HTTPAPI_OK);
@@ -405,52 +443,45 @@ HTTPAPI_RESULT HTTPAPI_SetOption(HTTP_HANDLE handle, const char* optionName,
 {
     HTTPAPI_RESULT result;
     HTTPAPI_Object *apiH = (HTTPAPI_Object *)handle;
-    int len;
 
     if ((apiH == NULL) ||
             (optionName == NULL) ||
             (value == NULL)) {
         result = HTTPAPI_INVALID_ARG;
     }
-    else if ((strcmp("x509EccCertificate", optionName) == 0) ||
-            (strcmp("x509certificate", optionName) == 0)) {
+    else if ((strcmp(OPTION_X509_ECC_CERT, optionName) == 0) ||
+            (strcmp(SU_OPTION_X509_CERT, optionName) == 0)) {
         if (apiH->x509Certificate) {
             free(apiH->x509Certificate);
         }
 
-        len = strlen((char *)value);
-        apiH->x509Certificate = (char *)malloc((len + 1) * sizeof(char));
-        if (apiH->x509Certificate == NULL) {
+        if (mallocAndStrcpy_s(&(apiH->x509Certificate), value) != 0) {
             result = HTTPAPI_ALLOC_FAILED;
-            LogInfo("unable to allocate memory for the client certificate"
+            LogError("unable to allocate memory for the client certificate"
                     " in HTTPAPI_SetOption");
         }
         else {
-            strcpy(apiH->x509Certificate, (const char *)value);
             result = HTTPAPI_OK;
         }
     }
-    else if ((strcmp("x509EccAliasKey", optionName) == 0) ||
-            (strcmp("x509privatekey", optionName) == 0)) {
+    else if ((strcmp(OPTION_X509_ECC_KEY, optionName) == 0) ||
+            (strcmp(SU_OPTION_X509_PRIVATE_KEY, optionName) == 0)) {
         if (apiH->x509PrivateKey) {
             free(apiH->x509PrivateKey);
         }
 
-        len = strlen((char *)value);
-        apiH->x509PrivateKey = (char *)malloc((len + 1) * sizeof(char));
-        if (apiH->x509PrivateKey == NULL) {
+        if (mallocAndStrcpy_s(&(apiH->x509PrivateKey), value) != 0) {
             result = HTTPAPI_ALLOC_FAILED;
-            LogInfo("unable to allocate memory for the client private key"
+            LogError("unable to allocate memory for the client private key"
                     " in HTTPAPI_SetOption");
         }
         else {
-            strcpy(apiH->x509PrivateKey, (const char*)value);
             result = HTTPAPI_OK;
         }
     }
     else {
         result = HTTPAPI_INVALID_ARG;
-        LogInfo("unknown option %s", optionName);
+        LogError("unknown option %s", optionName);
     }
 
     return (result);
@@ -460,7 +491,6 @@ HTTPAPI_RESULT HTTPAPI_CloneOption(const char* optionName, const void* value,
         const void** savedValue)
 {
     HTTPAPI_RESULT result;
-    size_t certLen;
     char *tempCert;
 
     if ((optionName == NULL) ||
@@ -468,24 +498,22 @@ HTTPAPI_RESULT HTTPAPI_CloneOption(const char* optionName, const void* value,
             (savedValue == NULL)) {
         result = HTTPAPI_INVALID_ARG;
     }
-    else if ((strcmp("x509EccCertificate", optionName) == 0) ||
-            (strcmp("x509certificate", optionName) == 0) ||
-            (strcmp("x509EccAliasKey", optionName) == 0) ||
-            (strcmp("x509privatekey", optionName) == 0)) {
-        certLen = strlen((const char *)value);
-        tempCert = (char *)malloc((certLen + 1) * sizeof(char));
-        if (tempCert == NULL) {
+    else if ((strcmp(OPTION_X509_ECC_CERT, optionName) == 0) ||
+            (strcmp(SU_OPTION_X509_CERT, optionName) == 0) ||
+            (strcmp(OPTION_X509_ECC_KEY, optionName) == 0) ||
+            (strcmp(SU_OPTION_X509_PRIVATE_KEY, optionName) == 0)) {
+        if (mallocAndStrcpy_s(&tempCert, value) != 0) {
             result = HTTPAPI_ALLOC_FAILED;
+            LogError("memory allocation failed in HTTPAPI_CloneOption");
         }
         else {
-            strcpy(tempCert, (const char*)value);
             *savedValue = tempCert;
             result = HTTPAPI_OK;
         }
     }
     else {
         result = HTTPAPI_INVALID_ARG;
-        LogInfo("unknown option %s", optionName);
+        LogError("unknown option %s", optionName);
     }
 
     return (result);

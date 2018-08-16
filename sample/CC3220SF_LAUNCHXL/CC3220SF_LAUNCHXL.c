@@ -235,17 +235,17 @@ GPIO_PinConfig gpioPinConfigs[] = {
     GPIOCC32XX_GPIO_12 | GPIO_DO_NOT_CONFIG,
 
     /* output pins */
-    /* CC3220SF_LAUNCHXL_GPIO_LED_D7 */
+    /* CC3220SF_LAUNCHXL_GPIO_LED_D10 */
     GPIOCC32XX_GPIO_09 | GPIO_CFG_OUT_STD | GPIO_CFG_OUT_STR_HIGH | GPIO_CFG_OUT_LOW,
 
     /*
-     *  CC3220SF_LAUNCHXL_GPIO_LED_D5 and CC3220SF_LAUNCHXL_GPIO_LED_D6 are shared with the
+     *  CC3220SF_LAUNCHXL_GPIO_LED_D8 and CC3220SF_LAUNCHXL_GPIO_LED_D9 are shared with the
      *  I2C and PWM peripherals. In order for those examples to work, these
      *  LEDs are taken out of gpioPinConfig[]
      */
-    /* CC3220SF_LAUNCHXL_GPIO_LED_D6 */
+    /* CC3220SF_LAUNCHXL_GPIO_LED_D9 */
     /* GPIOCC32XX_GPIO_10 | GPIO_CFG_OUT_STD | GPIO_CFG_OUT_STR_HIGH | GPIO_CFG_OUT_LOW, */
-    /* CC3220SF_LAUNCHXL_GPIO_LED_D5 */
+    /* CC3220SF_LAUNCHXL_GPIO_LED_D8 */
     /* GPIOCC32XX_GPIO_11 | GPIO_CFG_OUT_STD | GPIO_CFG_OUT_STR_HIGH | GPIO_CFG_OUT_LOW, */
 
     /* Sharp Display - GPIO configurations will be done in the Display files */
@@ -285,9 +285,8 @@ const GPIOCC32XX_Config GPIOCC32XX_config = {
 #include <ti/display/DisplaySharp.h>
 #define MAXPRINTLEN 1024
 
-#ifndef BOARD_DISPLAY_SHARP_SIZE
-#define BOARD_DISPLAY_SHARP_SIZE    96
-#endif
+/* This value can be changed to 96 for use with the 430BOOST-SHARP96 BoosterPack. */
+#define BOARD_DISPLAY_SHARP_SIZE    128
 
 DisplayUart_Object displayUartObject;
 DisplaySharp_Object displaySharpObject;
