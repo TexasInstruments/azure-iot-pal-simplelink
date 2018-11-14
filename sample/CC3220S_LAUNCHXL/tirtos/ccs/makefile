@@ -41,7 +41,7 @@ LIBS =  $(TREE_ROOT)/build_all/sdk/lib/ccs/m4/common_sl_release.a \
     $(TREE_ROOT)/build_all/sdk/lib/ccs/m4/serializer_sl_release.a \
     $(TREE_ROOT)/build_all/pal/lib/ccs/m4/pal_sl_release.a
 
-VPATH = ..:../..:../../..:$(TREE_ROOT)/sdk/certs
+VPATH = ..:../..:../../..:$(TREE_ROOT)/certs
 
 %.o : %.c
 

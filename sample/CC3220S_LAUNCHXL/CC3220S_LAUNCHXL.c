@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, Texas Instruments Incorporated
+ * Copyright (c) 2016-2019, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -158,14 +158,7 @@ const uint_least8_t CryptoCC32XX_count = CC3220S_LAUNCHXL_CRYPTOCOUNT;
  */
 #include <ti/drivers/dma/UDMACC32XX.h>
 
-#if defined(__TI_COMPILER_VERSION__)
-#pragma DATA_ALIGN(dmaControlTable, 1024)
-#elif defined(__IAR_SYSTEMS_ICC__)
-#pragma data_alignment=1024
-#elif defined(__GNUC__)
-__attribute__ ((aligned (1024)))
-#endif
-static tDMAControlTable dmaControlTable[64];
+static tDMAControlTable dmaControlTable[64] __attribute__ ((aligned (1024)));
 
 /*
  *  ======== dmaErrorFxn ========
@@ -247,6 +240,8 @@ GPIO_PinConfig gpioPinConfigs[] = {
     /* GPIOCC32XX_GPIO_10 | GPIO_CFG_OUT_STD | GPIO_CFG_OUT_STR_HIGH | GPIO_CFG_OUT_LOW, */
     /* CC3220S_LAUNCHXL_GPIO_LED_D8 */
     /* GPIOCC32XX_GPIO_11 | GPIO_CFG_OUT_STD | GPIO_CFG_OUT_STR_HIGH | GPIO_CFG_OUT_LOW, */
+
+    GPIOCC32XX_GPIO_30 | GPIO_DO_NOT_CONFIG, /* TMP116 EN */
 
     /* Sharp Display - GPIO configurations will be done in the Display files */
     GPIOCC32XX_GPIO_12 | GPIO_DO_NOT_CONFIG, /* SPI chip select */
@@ -581,13 +576,6 @@ const uint_least8_t SD_count = CC3220S_LAUNCHXL_SDCOUNT;
 
 SPICC32XXDMA_Object spiCC3220SDMAObjects[CC3220S_LAUNCHXL_SPICOUNT];
 
-#if defined(__TI_COMPILER_VERSION__)
-#pragma DATA_ALIGN(spiCC3220SDMAscratchBuf, 32)
-#elif defined(__IAR_SYSTEMS_ICC__)
-#pragma data_alignment=32
-#elif defined(__GNUC__)
-__attribute__ ((aligned (32)))
-#endif
 uint32_t spiCC3220SDMAscratchBuf[CC3220S_LAUNCHXL_SPICOUNT];
 
 const SPICC32XXDMA_HWAttrsV1 spiCC3220SDMAHWAttrs[CC3220S_LAUNCHXL_SPICOUNT] = {

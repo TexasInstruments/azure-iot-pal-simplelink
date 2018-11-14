@@ -41,6 +41,7 @@ extern "C" {
 
 #include "MSP_EXP432E401Y.h"
 
+#define Board_init                  MSP_EXP432E401Y_initGeneral
 #define Board_initGeneral           MSP_EXP432E401Y_initGeneral
 
 #define Board_ADC0                  MSP_EXP432E401Y_ADC0
@@ -63,10 +64,10 @@ extern "C" {
 #define Board_GPIO_LED2             MSP_EXP432E401Y_GPIO_D2
 #define Board_GPIO_BUTTON0          MSP_EXP432E401Y_GPIO_USR_SW1
 #define Board_GPIO_BUTTON1          MSP_EXP432E401Y_GPIO_USR_SW2
+#define Board_GPIO_TMP116_EN        MSP_EXP432E401Y_GPIO_TMP116_EN
 
 #define Board_I2C0                  MSP_EXP432E401Y_I2C0
 #define Board_I2C_TMP               MSP_EXP432E401Y_I2C0
-#define Board_I2C_TPL0401           MSP_EXP432E401Y_I2C7
 
 #define Board_NVSINTERNAL           MSP_EXP432E401Y_NVSMSP432E40
 
@@ -92,11 +93,6 @@ extern "C" {
 #define Board_UART2                 MSP_EXP432E401Y_UART2
 
 #define Board_WATCHDOG0             MSP_EXP432E401Y_WATCHDOG0
-
-/* Board specific I2C addresses */
-#define Board_TMP_ADDR              (0x40)
-#define Board_SENSORS_BP_TMP_ADDR   Board_TMP_ADDR
-#define Board_TPL0401_ADDR          (0x40)
 
 #ifdef __cplusplus
 }

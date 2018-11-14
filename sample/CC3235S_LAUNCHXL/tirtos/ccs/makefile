@@ -57,7 +57,7 @@ $(CONFIGPKG)/linker.cmd $(CONFIGPKG)/compiler.opt:
             $(MAKE) in $(CONFIGPKG).")
 	@ echo
 
-simplesample_http.out: main_tirtos.o certs.o startsntp.o simplesample_http.o network.o CC3220SF_LAUNCHXL.o CC3220SF_LAUNCHXL_TIRTOS.cmd $(CONFIGPKG)/linker.cmd $(LIBS)
+simplesample_http.out: main_tirtos.o certs.o startsntp.o simplesample_http.o network.o CC3235S_LAUNCHXL.o CC3235S_LAUNCHXL_TIRTOS.cmd $(CONFIGPKG)/linker.cmd $(LIBS)
 	@echo building $@ ..
 	@$(LD) -o $@ $^ -x -m $@.map $(LFLAGS)
 

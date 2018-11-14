@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, Texas Instruments Incorporated
+ * Copyright (c) 2018-2019, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,9 +31,9 @@
  */
 
 /*
- *  ======== CC3220SF_LAUNCHXL.c ========
+ *  ======== CC3235S_LAUNCHXL.c ========
  *  This file is responsible for setting up the board specific items for the
- *  CC3220SF_LAUNCHXL board.
+ *  CC3235S_LAUNCHXL board.
  */
 
 #include <stdbool.h>
@@ -60,7 +60,7 @@
 #include <ti/drivers/Power.h>
 #include <ti/drivers/power/PowerCC32XX.h>
 
-#include "CC3220SF_LAUNCHXL.h"
+#include "CC3235S_LAUNCHXL.h"
 
 /*
  *  This define determines whether to use the UARTCC32XXDMA driver
@@ -77,9 +77,9 @@
 #include <ti/drivers/ADC.h>
 #include <ti/drivers/adc/ADCCC32XX.h>
 
-ADCCC32XX_Object adcCC3220SObjects[CC3220SF_LAUNCHXL_ADCCOUNT];
+ADCCC32XX_Object adcCC3235SObjects[CC3235S_LAUNCHXL_ADCCOUNT];
 
-const ADCCC32XX_HWAttrsV1 adcCC3220SHWAttrs[CC3220SF_LAUNCHXL_ADCCOUNT] = {
+const ADCCC32XX_HWAttrsV1 adcCC3235SHWAttrs[CC3235S_LAUNCHXL_ADCCOUNT] = {
     {
         .adcPin = ADCCC32XX_PIN_59_CH_2
     },
@@ -88,20 +88,20 @@ const ADCCC32XX_HWAttrsV1 adcCC3220SHWAttrs[CC3220SF_LAUNCHXL_ADCCOUNT] = {
     }
 };
 
-const ADC_Config ADC_config[CC3220SF_LAUNCHXL_ADCCOUNT] = {
+const ADC_Config ADC_config[CC3235S_LAUNCHXL_ADCCOUNT] = {
     {
         .fxnTablePtr = &ADCCC32XX_fxnTable,
-        .object = &adcCC3220SObjects[CC3220SF_LAUNCHXL_ADC0],
-        .hwAttrs = &adcCC3220SHWAttrs[CC3220SF_LAUNCHXL_ADC0]
+        .object = &adcCC3235SObjects[CC3235S_LAUNCHXL_ADC0],
+        .hwAttrs = &adcCC3235SHWAttrs[CC3235S_LAUNCHXL_ADC0]
     },
     {
         .fxnTablePtr = &ADCCC32XX_fxnTable,
-        .object = &adcCC3220SObjects[CC3220SF_LAUNCHXL_ADC1],
-        .hwAttrs = &adcCC3220SHWAttrs[CC3220SF_LAUNCHXL_ADC1]
+        .object = &adcCC3235SObjects[CC3235S_LAUNCHXL_ADC1],
+        .hwAttrs = &adcCC3235SHWAttrs[CC3235S_LAUNCHXL_ADC1]
     }
 };
 
-const uint_least8_t ADC_count = CC3220SF_LAUNCHXL_ADCCOUNT;
+const uint_least8_t ADC_count = CC3235S_LAUNCHXL_ADCCOUNT;
 
 /*
  *  =============================== Capture ===============================
@@ -109,9 +109,9 @@ const uint_least8_t ADC_count = CC3220SF_LAUNCHXL_ADCCOUNT;
 #include <ti/drivers/Capture.h>
 #include <ti/drivers/capture/CaptureCC32XX.h>
 
-CaptureCC32XX_Object captureCC3220SFObjects[CC3220SF_LAUNCHXL_CAPTURECOUNT];
+CaptureCC32XX_Object captureCC3235SObjects[CC3235S_LAUNCHXL_CAPTURECOUNT];
 
-const CaptureCC32XX_HWAttrs captureCC3220SFHWAttrs[CC3220SF_LAUNCHXL_CAPTURECOUNT] =
+const CaptureCC32XX_HWAttrs captureCC3235SHWAttrs[CC3235S_LAUNCHXL_CAPTURECOUNT] =
 {
       {
          .capturePin = CaptureCC32XX_PIN_04,
@@ -123,35 +123,35 @@ const CaptureCC32XX_HWAttrs captureCC3220SFHWAttrs[CC3220SF_LAUNCHXL_CAPTURECOUN
       },
 };
 
-const Capture_Config Capture_config[CC3220SF_LAUNCHXL_CAPTURECOUNT] = {
+const Capture_Config Capture_config[CC3235S_LAUNCHXL_CAPTURECOUNT] = {
     {
         .fxnTablePtr = &CaptureCC32XX_fxnTable,
-        .object = &captureCC3220SFObjects[CC3220SF_LAUNCHXL_CAPTURE0],
-        .hwAttrs = &captureCC3220SFHWAttrs[CC3220SF_LAUNCHXL_CAPTURE0]
+        .object = &captureCC3235SObjects[CC3235S_LAUNCHXL_CAPTURE0],
+        .hwAttrs = &captureCC3235SHWAttrs[CC3235S_LAUNCHXL_CAPTURE0]
     },
     {
         .fxnTablePtr = &CaptureCC32XX_fxnTable,
-        .object = &captureCC3220SFObjects[CC3220SF_LAUNCHXL_CAPTURE1],
-        .hwAttrs = &captureCC3220SFHWAttrs[CC3220SF_LAUNCHXL_CAPTURE1]
+        .object = &captureCC3235SObjects[CC3235S_LAUNCHXL_CAPTURE1],
+        .hwAttrs = &captureCC3235SHWAttrs[CC3235S_LAUNCHXL_CAPTURE1]
     }
 };
 
-const uint_least8_t Capture_count = CC3220SF_LAUNCHXL_CAPTURECOUNT;
+const uint_least8_t Capture_count = CC3235S_LAUNCHXL_CAPTURECOUNT;
 
 /*
  *  =============================== Crypto ===============================
  */
 #include <ti/drivers/crypto/CryptoCC32XX.h>
 
-CryptoCC32XX_Object cryptoCC3220SObjects[CC3220SF_LAUNCHXL_CRYPTOCOUNT];
+CryptoCC32XX_Object cryptoCC3235SObjects[CC3235S_LAUNCHXL_CRYPTOCOUNT];
 
-const CryptoCC32XX_Config CryptoCC32XX_config[CC3220SF_LAUNCHXL_CRYPTOCOUNT] = {
+const CryptoCC32XX_Config CryptoCC32XX_config[CC3235S_LAUNCHXL_CRYPTOCOUNT] = {
     {
-        .object = &cryptoCC3220SObjects[CC3220SF_LAUNCHXL_CRYPTO0]
+        .object = &cryptoCC3235SObjects[CC3235S_LAUNCHXL_CRYPTO0]
     }
 };
 
-const uint_least8_t CryptoCC32XX_count = CC3220SF_LAUNCHXL_CRYPTOCOUNT;
+const uint_least8_t CryptoCC32XX_count = CC3235S_LAUNCHXL_CRYPTOCOUNT;
 
 /*
  *  =============================== DMA ===============================
@@ -175,9 +175,9 @@ static void dmaErrorFxn(uintptr_t arg)
     while (1);
 }
 
-UDMACC32XX_Object udmaCC3220SObject;
+UDMACC32XX_Object udmaCC3235SObject;
 
-const UDMACC32XX_HWAttrs udmaCC3220SHWAttrs = {
+const UDMACC32XX_HWAttrs udmaCC3235SHWAttrs = {
     .controlBaseAddr = (void *)dmaControlTable,
     .dmaErrorFxn = (UDMACC32XX_ErrorFxn)dmaErrorFxn,
     .intNum = INT_UDMAERR,
@@ -185,17 +185,17 @@ const UDMACC32XX_HWAttrs udmaCC3220SHWAttrs = {
 };
 
 const UDMACC32XX_Config UDMACC32XX_config = {
-    .object = &udmaCC3220SObject,
-    .hwAttrs = &udmaCC3220SHWAttrs
+    .object = &udmaCC3235SObject,
+    .hwAttrs = &udmaCC3235SHWAttrs
 };
 
 /*
  *  =============================== General ===============================
  */
 /*
- *  ======== CC3220SF_LAUNCHXL_initGeneral ========
+ *  ======== CC3235S_LAUNCHXL_initGeneral ========
  */
-void CC3220SF_LAUNCHXL_initGeneral(void)
+void CC3235S_LAUNCHXL_initGeneral(void)
 {
     PRCMCC3200MCUInit();
     Power_init();
@@ -210,38 +210,36 @@ void CC3220SF_LAUNCHXL_initGeneral(void)
 /*
  * Array of Pin configurations
  * NOTE: The order of the pin configurations must coincide with what was
- *       defined in CC3220SF_LAUNCHXL.h
+ *       defined in CC3235S_LAUNCHXL.h
  * NOTE: Pins not used for interrupts should be placed at the end of the
  *       array.  Callback entries can be omitted from callbacks array to
  *       reduce memory usage.
  */
 GPIO_PinConfig gpioPinConfigs[] = {
     /* input pins with callbacks */
-    /* CC3220SF_LAUNCHXL_GPIO_SW2 */
+    /* CC3235S_LAUNCHXL_GPIO_SW2 */
     GPIOCC32XX_GPIO_13 | GPIO_CFG_INPUT | GPIO_CFG_IN_INT_RISING,
-    /* CC3220SF_LAUNCHXL_GPIO_SW3 */
+    /* CC3235S_LAUNCHXL_GPIO_SW3 */
     GPIOCC32XX_GPIO_22 | GPIO_CFG_INPUT | GPIO_CFG_IN_INT_RISING,
 
-    /* CC3220SF_LAUNCHXL_SPI_MASTER_READY */
+    /* CC3235S_LAUNCHXL_SPI_MASTER_READY */
     GPIOCC32XX_GPIO_28 | GPIO_DO_NOT_CONFIG,
-    /* CC3220SF_LAUNCHXL_SPI_SLAVE_READY */
+    /* CC3235S_LAUNCHXL_SPI_SLAVE_READY */
     GPIOCC32XX_GPIO_12 | GPIO_DO_NOT_CONFIG,
 
     /* output pins */
-    /* CC3220SF_LAUNCHXL_GPIO_LED_D10 */
+    /* CC3235S_LAUNCHXL_GPIO_LED_BLUE */
     GPIOCC32XX_GPIO_09 | GPIO_CFG_OUT_STD | GPIO_CFG_OUT_STR_HIGH | GPIO_CFG_OUT_LOW,
 
     /*
-     *  CC3220SF_LAUNCHXL_GPIO_LED_D8 and CC3220SF_LAUNCHXL_GPIO_LED_D9 are shared with the
+     *  CC3235S_LAUNCHXL_GPIO_LED_RED and CC3235S_LAUNCHXL_GPIO_LED_GREEN are shared with the
      *  I2C and PWM peripherals. In order for those examples to work, these
      *  LEDs are taken out of gpioPinConfig[]
      */
-    /* CC3220SF_LAUNCHXL_GPIO_LED_D9 */
+    /* CC3235S_LAUNCHXL_GPIO_LED_RED */
     /* GPIOCC32XX_GPIO_10 | GPIO_CFG_OUT_STD | GPIO_CFG_OUT_STR_HIGH | GPIO_CFG_OUT_LOW, */
-    /* CC3220SF_LAUNCHXL_GPIO_LED_D8 */
+    /* CC3235S_LAUNCHXL_GPIO_LED_GREEN */
     /* GPIOCC32XX_GPIO_11 | GPIO_CFG_OUT_STD | GPIO_CFG_OUT_STR_HIGH | GPIO_CFG_OUT_LOW, */
-
-    GPIOCC32XX_GPIO_30 | GPIO_DO_NOT_CONFIG, /* TMP116 EN */
 
     /* Sharp Display - GPIO configurations will be done in the Display files */
     GPIOCC32XX_GPIO_12 | GPIO_DO_NOT_CONFIG, /* SPI chip select */
@@ -252,15 +250,15 @@ GPIO_PinConfig gpioPinConfigs[] = {
 /*
  * Array of callback function pointers
  * NOTE: The order of the pin configurations must coincide with what was
- *       defined in CC3220SF_LAUNCHXL.h
+ *       defined in CC3235S_LAUNCHXL.h
  * NOTE: Pins not used for interrupts can be omitted from callbacks array to
  *       reduce memory usage (if placed at end of gpioPinConfigs array).
  */
 GPIO_CallbackFxn gpioCallbackFunctions[] = {
-    NULL,  /* CC3220SF_LAUNCHXL_GPIO_SW2 */
-    NULL,  /* CC3220SF_LAUNCHXL_GPIO_SW3 */
-    NULL,  /* CC3220SF_LAUNCHXL_SPI_MASTER_READY */
-    NULL   /* CC3220SF_LAUNCHXL_SPI_SLAVE_READY */
+    NULL,  /* CC3235S_LAUNCHXL_GPIO_SW2 */
+    NULL,  /* CC3235S_LAUNCHXL_GPIO_SW3 */
+    NULL,  /* CC3235S_LAUNCHXL_SPI_MASTER_READY */
+    NULL   /* CC3235S_LAUNCHXL_SPI_SLAVE_READY */
 };
 
 /* The device-specific GPIO_config structure */
@@ -298,10 +296,10 @@ const DisplayUart_HWAttrs displayUartHWAttrs = {
 };
 
 const DisplaySharp_HWAttrsV1 displaySharpHWattrs = {
-    .spiIndex    = CC3220SF_LAUNCHXL_SPI1,
-    .csPin       = CC3220SF_LAUNCHXL_LCD_CS,
-    .powerPin    = CC3220SF_LAUNCHXL_LCD_POWER,
-    .enablePin   = CC3220SF_LAUNCHXL_LCD_ENABLE,
+    .spiIndex    = CC3235S_LAUNCHXL_SPI1,
+    .csPin       = CC3235S_LAUNCHXL_LCD_CS,
+    .powerPin    = CC3235S_LAUNCHXL_LCD_POWER,
+    .enablePin   = CC3235S_LAUNCHXL_LCD_ENABLE,
     .pixelWidth  = BOARD_DISPLAY_SHARP_SIZE,
     .pixelHeight = BOARD_DISPLAY_SHARP_SIZE,
     .displayBuf  = sharpDisplayBuf,
@@ -338,17 +336,15 @@ const Display_Config Display_config[] = {
 
 const uint_least8_t Display_count = sizeof(Display_config) / sizeof(Display_Config);
 
-
-
 /*
  *  =============================== I2C ===============================
  */
 #include <ti/drivers/I2C.h>
 #include <ti/drivers/i2c/I2CCC32XX.h>
 
-I2CCC32XX_Object i2cCC3220SObjects[CC3220SF_LAUNCHXL_I2CCOUNT];
+I2CCC32XX_Object i2cCC3235SObjects[CC3235S_LAUNCHXL_I2CCOUNT];
 
-const I2CCC32XX_HWAttrsV1 i2cCC3220SHWAttrs[CC3220SF_LAUNCHXL_I2CCOUNT] = {
+const I2CCC32XX_HWAttrsV1 i2cCC3235SHWAttrs[CC3235S_LAUNCHXL_I2CCOUNT] = {
     {
         .baseAddr = I2CA0_BASE,
         .intNum = INT_I2CA0,
@@ -358,15 +354,15 @@ const I2CCC32XX_HWAttrsV1 i2cCC3220SHWAttrs[CC3220SF_LAUNCHXL_I2CCOUNT] = {
     }
 };
 
-const I2C_Config I2C_config[CC3220SF_LAUNCHXL_I2CCOUNT] = {
+const I2C_Config I2C_config[CC3235S_LAUNCHXL_I2CCOUNT] = {
     {
         .fxnTablePtr = &I2CCC32XX_fxnTable,
-        .object = &i2cCC3220SObjects[CC3220SF_LAUNCHXL_I2C0],
-        .hwAttrs = &i2cCC3220SHWAttrs[CC3220SF_LAUNCHXL_I2C0]
+        .object = &i2cCC3235SObjects[CC3235S_LAUNCHXL_I2C0],
+        .hwAttrs = &i2cCC3235SHWAttrs[CC3235S_LAUNCHXL_I2C0]
     }
 };
 
-const uint_least8_t I2C_count = CC3220SF_LAUNCHXL_I2CCOUNT;
+const uint_least8_t I2C_count = CC3235S_LAUNCHXL_I2CCOUNT;
 
 /*
  *  =============================== I2S ===============================
@@ -374,9 +370,9 @@ const uint_least8_t I2C_count = CC3220SF_LAUNCHXL_I2CCOUNT;
 #include <ti/drivers/I2S.h>
 #include <ti/drivers/i2s/I2SCC32XXDMA.h>
 
-I2SCC32XXDMA_Object i2sCC3220SObjects[CC3220SF_LAUNCHXL_I2SCOUNT];
+I2SCC32XXDMA_Object i2sCC3235SObjects[CC3235S_LAUNCHXL_I2SCOUNT];
 
-const I2SCC32XXDMA_HWAttrsV1 i2sCC3220SHWAttrs[CC3220SF_LAUNCHXL_I2SCOUNT] = {
+const I2SCC32XXDMA_HWAttrsV1 i2sCC3235SHWAttrs[CC3235S_LAUNCHXL_I2SCOUNT] = {
     {
         .baseAddr = I2S_BASE,
         .intNum = INT_I2S,
@@ -391,15 +387,15 @@ const I2SCC32XXDMA_HWAttrsV1 i2sCC3220SHWAttrs[CC3220SF_LAUNCHXL_I2SCOUNT] = {
     }
 };
 
-const I2S_Config I2S_config[CC3220SF_LAUNCHXL_I2SCOUNT] = {
+const I2S_Config I2S_config[CC3235S_LAUNCHXL_I2SCOUNT] = {
     {
         .fxnTablePtr = &I2SCC32XXDMA_fxnTable,
-        .object = &i2sCC3220SObjects[CC3220SF_LAUNCHXL_I2S0],
-        .hwAttrs = &i2sCC3220SHWAttrs[CC3220SF_LAUNCHXL_I2S0]
+        .object = &i2sCC3235SObjects[CC3235S_LAUNCHXL_I2S0],
+        .hwAttrs = &i2sCC3235SHWAttrs[CC3235S_LAUNCHXL_I2S0]
     }
 };
 
-const uint_least8_t I2S_count = CC3220SF_LAUNCHXL_I2SCOUNT;
+const uint_least8_t I2S_count = CC3235S_LAUNCHXL_I2SCOUNT;
 
 /*
  *  =============================== Power ===============================
@@ -486,31 +482,31 @@ const PowerCC32XX_ConfigV1 PowerCC32XX_config = {
 #include <ti/drivers/PWM.h>
 #include <ti/drivers/pwm/PWMTimerCC32XX.h>
 
-PWMTimerCC32XX_Object pwmTimerCC3220SObjects[CC3220SF_LAUNCHXL_PWMCOUNT];
+PWMTimerCC32XX_Object pwmTimerCC3235SObjects[CC3235S_LAUNCHXL_PWMCOUNT];
 
-const PWMTimerCC32XX_HWAttrsV2 pwmTimerCC3220SHWAttrs[CC3220SF_LAUNCHXL_PWMCOUNT] = {
-    {    /* CC3220SF_LAUNCHXL_PWM6 */
+const PWMTimerCC32XX_HWAttrsV2 pwmTimerCC3235SHWAttrs[CC3235S_LAUNCHXL_PWMCOUNT] = {
+    {    /* CC3235S_LAUNCHXL_PWM6 */
         .pwmPin = PWMTimerCC32XX_PIN_01
     },
-    {    /* CC3220SF_LAUNCHXL_PWM7 */
+    {    /* CC3235S_LAUNCHXL_PWM7 */
         .pwmPin = PWMTimerCC32XX_PIN_02
     }
 };
 
-const PWM_Config PWM_config[CC3220SF_LAUNCHXL_PWMCOUNT] = {
+const PWM_Config PWM_config[CC3235S_LAUNCHXL_PWMCOUNT] = {
     {
         .fxnTablePtr = &PWMTimerCC32XX_fxnTable,
-        .object = &pwmTimerCC3220SObjects[CC3220SF_LAUNCHXL_PWM6],
-        .hwAttrs = &pwmTimerCC3220SHWAttrs[CC3220SF_LAUNCHXL_PWM6]
+        .object = &pwmTimerCC3235SObjects[CC3235S_LAUNCHXL_PWM6],
+        .hwAttrs = &pwmTimerCC3235SHWAttrs[CC3235S_LAUNCHXL_PWM6]
     },
     {
         .fxnTablePtr = &PWMTimerCC32XX_fxnTable,
-        .object = &pwmTimerCC3220SObjects[CC3220SF_LAUNCHXL_PWM7],
-        .hwAttrs = &pwmTimerCC3220SHWAttrs[CC3220SF_LAUNCHXL_PWM7]
+        .object = &pwmTimerCC3235SObjects[CC3235S_LAUNCHXL_PWM7],
+        .hwAttrs = &pwmTimerCC3235SHWAttrs[CC3235S_LAUNCHXL_PWM7]
     }
 };
 
-const uint_least8_t PWM_count = CC3220SF_LAUNCHXL_PWMCOUNT;
+const uint_least8_t PWM_count = CC3235S_LAUNCHXL_PWMCOUNT;
 
 /*
  *  =============================== SDFatFS ===============================
@@ -528,15 +524,15 @@ const uint_least8_t PWM_count = CC3220SF_LAUNCHXL_PWMCOUNT;
  * acceptable to have more SD driver instances than SDFatFs driver instances
  * but the opposite is not supported & the SDFatFs will fail to open.
  */
-SDFatFS_Object sdfatfsObjects[CC3220SF_LAUNCHXL_SDFatFSCOUNT];
+SDFatFS_Object sdfatfsObjects[CC3235S_LAUNCHXL_SDFatFSCOUNT];
 
-const SDFatFS_Config SDFatFS_config[CC3220SF_LAUNCHXL_SDFatFSCOUNT] = {
+const SDFatFS_Config SDFatFS_config[CC3235S_LAUNCHXL_SDFatFSCOUNT] = {
     {
-        .object = &sdfatfsObjects[CC3220SF_LAUNCHXL_SDFatFS0]
+        .object = &sdfatfsObjects[CC3235S_LAUNCHXL_SDFatFS0]
     }
 };
 
-const uint_least8_t SDFatFS_count = CC3220SF_LAUNCHXL_SDFatFSCOUNT;
+const uint_least8_t SDFatFS_count = CC3235S_LAUNCHXL_SDFatFSCOUNT;
 
 /*
  *  =============================== SD ===============================
@@ -544,10 +540,10 @@ const uint_least8_t SDFatFS_count = CC3220SF_LAUNCHXL_SDFatFSCOUNT;
 #include <ti/drivers/SD.h>
 #include <ti/drivers/sd/SDHostCC32XX.h>
 
-SDHostCC32XX_Object sdhostCC3220SObjects[CC3220SF_LAUNCHXL_SDCOUNT];
+SDHostCC32XX_Object sdhostCC3235SObjects[CC3235S_LAUNCHXL_SDCOUNT];
 
 /* SDHost configuration structure, describing which pins are to be used */
-const SDHostCC32XX_HWAttrsV1 sdhostCC3220SHWattrs[CC3220SF_LAUNCHXL_SDCOUNT] = {
+const SDHostCC32XX_HWAttrsV1 sdhostCC3235SHWattrs[CC3235S_LAUNCHXL_SDCOUNT] = {
     {
         .clkRate = 8000000,
         .intPriority = ~0,
@@ -560,15 +556,15 @@ const SDHostCC32XX_HWAttrsV1 sdhostCC3220SHWattrs[CC3220SF_LAUNCHXL_SDCOUNT] = {
     }
 };
 
-const SD_Config SD_config[CC3220SF_LAUNCHXL_SDCOUNT] = {
+const SD_Config SD_config[CC3235S_LAUNCHXL_SDCOUNT] = {
     {
         .fxnTablePtr = &sdHostCC32XX_fxnTable,
-        .object = &sdhostCC3220SObjects[CC3220SF_LAUNCHXL_SD0],
-        .hwAttrs = &sdhostCC3220SHWattrs[CC3220SF_LAUNCHXL_SD0]
+        .object = &sdhostCC3235SObjects[CC3235S_LAUNCHXL_SD0],
+        .hwAttrs = &sdhostCC3235SHWattrs[CC3235S_LAUNCHXL_SD0]
     },
 };
 
-const uint_least8_t SD_count = CC3220SF_LAUNCHXL_SDCOUNT;
+const uint_least8_t SD_count = CC3235S_LAUNCHXL_SDCOUNT;
 
 /*
  *  =============================== SPI ===============================
@@ -576,11 +572,11 @@ const uint_least8_t SD_count = CC3220SF_LAUNCHXL_SDCOUNT;
 #include <ti/drivers/SPI.h>
 #include <ti/drivers/spi/SPICC32XXDMA.h>
 
-SPICC32XXDMA_Object spiCC3220SDMAObjects[CC3220SF_LAUNCHXL_SPICOUNT];
+SPICC32XXDMA_Object spiCC3235SDMAObjects[CC3235S_LAUNCHXL_SPICOUNT];
 
-uint32_t spiCC3220SDMAscratchBuf[CC3220SF_LAUNCHXL_SPICOUNT];
+uint32_t spiCC3235SDMAscratchBuf[CC3235S_LAUNCHXL_SPICOUNT];
 
-const SPICC32XXDMA_HWAttrsV1 spiCC3220SDMAHWAttrs[CC3220SF_LAUNCHXL_SPICOUNT] = {
+const SPICC32XXDMA_HWAttrsV1 spiCC3235SDMAHWAttrs[CC3235S_LAUNCHXL_SPICOUNT] = {
     /* index 0 is reserved for LSPI that links to the NWP */
     {
         .baseAddr = LSPI_BASE,
@@ -591,7 +587,7 @@ const SPICC32XXDMA_HWAttrsV1 spiCC3220SDMAHWAttrs[CC3220SF_LAUNCHXL_SPICOUNT] = 
         .csPolarity = SPI_CS_ACTIVEHIGH,
         .pinMode = SPI_4PIN_MODE,
         .turboMode = SPI_TURBO_OFF,
-        .scratchBufPtr = &spiCC3220SDMAscratchBuf[CC3220SF_LAUNCHXL_SPI0],
+        .scratchBufPtr = &spiCC3235SDMAscratchBuf[CC3235S_LAUNCHXL_SPI0],
         .defaultTxBufValue = 0,
         .rxChannelIndex = UDMA_CH12_LSPI_RX,
         .txChannelIndex = UDMA_CH13_LSPI_TX,
@@ -610,7 +606,7 @@ const SPICC32XXDMA_HWAttrsV1 spiCC3220SDMAHWAttrs[CC3220SF_LAUNCHXL_SPICOUNT] = 
         .csPolarity = SPI_CS_ACTIVELOW,
         .pinMode = SPI_4PIN_MODE,
         .turboMode = SPI_TURBO_OFF,
-        .scratchBufPtr = &spiCC3220SDMAscratchBuf[CC3220SF_LAUNCHXL_SPI1],
+        .scratchBufPtr = &spiCC3235SDMAscratchBuf[CC3235S_LAUNCHXL_SPI1],
         .defaultTxBufValue = 0,
         .rxChannelIndex = UDMA_CH6_GSPI_RX,
         .txChannelIndex = UDMA_CH7_GSPI_TX,
@@ -622,20 +618,20 @@ const SPICC32XXDMA_HWAttrsV1 spiCC3220SDMAHWAttrs[CC3220SF_LAUNCHXL_SPICOUNT] = 
     }
 };
 
-const SPI_Config SPI_config[CC3220SF_LAUNCHXL_SPICOUNT] = {
+const SPI_Config SPI_config[CC3235S_LAUNCHXL_SPICOUNT] = {
     {
         .fxnTablePtr = &SPICC32XXDMA_fxnTable,
-        .object = &spiCC3220SDMAObjects[CC3220SF_LAUNCHXL_SPI0],
-        .hwAttrs = &spiCC3220SDMAHWAttrs[CC3220SF_LAUNCHXL_SPI0]
+        .object = &spiCC3235SDMAObjects[CC3235S_LAUNCHXL_SPI0],
+        .hwAttrs = &spiCC3235SDMAHWAttrs[CC3235S_LAUNCHXL_SPI0]
     },
     {
         .fxnTablePtr = &SPICC32XXDMA_fxnTable,
-        .object = &spiCC3220SDMAObjects[CC3220SF_LAUNCHXL_SPI1],
-        .hwAttrs = &spiCC3220SDMAHWAttrs[CC3220SF_LAUNCHXL_SPI1]
+        .object = &spiCC3235SDMAObjects[CC3235S_LAUNCHXL_SPI1],
+        .hwAttrs = &spiCC3235SDMAHWAttrs[CC3235S_LAUNCHXL_SPI1]
     }
 };
 
-const uint_least8_t SPI_count = CC3220SF_LAUNCHXL_SPICOUNT;
+const uint_least8_t SPI_count = CC3235S_LAUNCHXL_SPICOUNT;
 
 /*
  *  =============================== Timer ===============================
@@ -643,9 +639,9 @@ const uint_least8_t SPI_count = CC3220SF_LAUNCHXL_SPICOUNT;
 #include <ti/drivers/Timer.h>
 #include <ti/drivers/timer/TimerCC32XX.h>
 
-TimerCC32XX_Object timerCC3220SFObjects[CC3220SF_LAUNCHXL_TIMERCOUNT];
+TimerCC32XX_Object timerCC3235SObjects[CC3235S_LAUNCHXL_TIMERCOUNT];
 
-const TimerCC32XX_HWAttrs timerCC3220SFHWAttrs[CC3220SF_LAUNCHXL_TIMERCOUNT] = {
+const TimerCC32XX_HWAttrs timerCC3235SHWAttrs[CC3235S_LAUNCHXL_TIMERCOUNT] = {
     {
         .baseAddress = TIMERA0_BASE,
         .subTimer = TimerCC32XX_timer32,
@@ -666,25 +662,25 @@ const TimerCC32XX_HWAttrs timerCC3220SFHWAttrs[CC3220SF_LAUNCHXL_TIMERCOUNT] = {
     },
 };
 
-const Timer_Config Timer_config[CC3220SF_LAUNCHXL_TIMERCOUNT] = {
+const Timer_Config Timer_config[CC3235S_LAUNCHXL_TIMERCOUNT] = {
     {
         .fxnTablePtr = &TimerCC32XX_fxnTable,
-        .object = &timerCC3220SFObjects[CC3220SF_LAUNCHXL_TIMER0],
-        .hwAttrs = &timerCC3220SFHWAttrs[CC3220SF_LAUNCHXL_TIMER0]
+        .object = &timerCC3235SObjects[CC3235S_LAUNCHXL_TIMER0],
+        .hwAttrs = &timerCC3235SHWAttrs[CC3235S_LAUNCHXL_TIMER0]
     },
     {
         .fxnTablePtr = &TimerCC32XX_fxnTable,
-        .object = &timerCC3220SFObjects[CC3220SF_LAUNCHXL_TIMER1],
-        .hwAttrs = &timerCC3220SFHWAttrs[CC3220SF_LAUNCHXL_TIMER1]
+        .object = &timerCC3235SObjects[CC3235S_LAUNCHXL_TIMER1],
+        .hwAttrs = &timerCC3235SHWAttrs[CC3235S_LAUNCHXL_TIMER1]
     },
     {
         .fxnTablePtr = &TimerCC32XX_fxnTable,
-        .object = &timerCC3220SFObjects[CC3220SF_LAUNCHXL_TIMER2],
-        .hwAttrs = &timerCC3220SFHWAttrs[CC3220SF_LAUNCHXL_TIMER2]
+        .object = &timerCC3235SObjects[CC3235S_LAUNCHXL_TIMER2],
+        .hwAttrs = &timerCC3235SHWAttrs[CC3235S_LAUNCHXL_TIMER2]
     },
 };
 
-const uint_least8_t Timer_count = CC3220SF_LAUNCHXL_TIMERCOUNT;
+const uint_least8_t Timer_count = CC3235S_LAUNCHXL_TIMERCOUNT;
 
 /*
  *  =============================== UART ===============================
@@ -693,10 +689,10 @@ const uint_least8_t Timer_count = CC3220SF_LAUNCHXL_TIMERCOUNT;
 #if TI_DRIVERS_UART_DMA
 #include <ti/drivers/uart/UARTCC32XXDMA.h>
 
-UARTCC32XXDMA_Object uartCC3220SDmaObjects[CC3220SF_LAUNCHXL_UARTCOUNT];
+UARTCC32XXDMA_Object uartCC3235SDmaObjects[CC3235S_LAUNCHXL_UARTCOUNT];
 
 /* UART configuration structure */
-const UARTCC32XXDMA_HWAttrsV1 uartCC3220SDmaHWAttrs[CC3220SF_LAUNCHXL_UARTCOUNT] = {
+const UARTCC32XXDMA_HWAttrsV1 uartCC3235SDmaHWAttrs[CC3235S_LAUNCHXL_UARTCOUNT] = {
     {
         .baseAddr = UARTA0_BASE,
         .intNum = INT_UARTA0,
@@ -725,34 +721,34 @@ const UARTCC32XXDMA_HWAttrsV1 uartCC3220SDmaHWAttrs[CC3220SF_LAUNCHXL_UARTCOUNT]
     }
 };
 
-const UART_Config UART_config[CC3220SF_LAUNCHXL_UARTCOUNT] = {
+const UART_Config UART_config[CC3235S_LAUNCHXL_UARTCOUNT] = {
     {
         .fxnTablePtr = &UARTCC32XXDMA_fxnTable,
-        .object = &uartCC3220SDmaObjects[CC3220SF_LAUNCHXL_UART0],
-        .hwAttrs = &uartCC3220SDmaHWAttrs[CC3220SF_LAUNCHXL_UART0]
+        .object = &uartCC3235SDmaObjects[CC3235S_LAUNCHXL_UART0],
+        .hwAttrs = &uartCC3235SDmaHWAttrs[CC3235S_LAUNCHXL_UART0]
     },
     {
         .fxnTablePtr = &UARTCC32XXDMA_fxnTable,
-        .object = &uartCC3220SDmaObjects[CC3220SF_LAUNCHXL_UART1],
-        .hwAttrs = &uartCC3220SDmaHWAttrs[CC3220SF_LAUNCHXL_UART1]
+        .object = &uartCC3235SDmaObjects[CC3235S_LAUNCHXL_UART1],
+        .hwAttrs = &uartCC3235SDmaHWAttrs[CC3235S_LAUNCHXL_UART1]
     }
 };
 
 #else
 #include <ti/drivers/uart/UARTCC32XX.h>
 
-UARTCC32XX_Object uartCC3220SObjects[CC3220SF_LAUNCHXL_UARTCOUNT];
-unsigned char uartCC3220SRingBuffer[CC3220SF_LAUNCHXL_UARTCOUNT][32];
+UARTCC32XX_Object uartCC3235SObjects[CC3235S_LAUNCHXL_UARTCOUNT];
+unsigned char uartCC3235SRingBuffer[CC3235S_LAUNCHXL_UARTCOUNT][32];
 
 /* UART configuration structure */
-const UARTCC32XX_HWAttrsV1 uartCC3220SHWAttrs[CC3220SF_LAUNCHXL_UARTCOUNT] = {
+const UARTCC32XX_HWAttrsV1 uartCC3235SHWAttrs[CC3235S_LAUNCHXL_UARTCOUNT] = {
     {
         .baseAddr = UARTA0_BASE,
         .intNum = INT_UARTA0,
         .intPriority = (~0),
         .flowControl = UARTCC32XX_FLOWCTRL_NONE,
-        .ringBufPtr  = uartCC3220SRingBuffer[CC3220SF_LAUNCHXL_UART0],
-        .ringBufSize = sizeof(uartCC3220SRingBuffer[CC3220SF_LAUNCHXL_UART0]),
+        .ringBufPtr  = uartCC3235SRingBuffer[CC3235S_LAUNCHXL_UART0],
+        .ringBufSize = sizeof(uartCC3235SRingBuffer[CC3235S_LAUNCHXL_UART0]),
         .rxPin = UARTCC32XX_PIN_57_UART0_RX,
         .txPin = UARTCC32XX_PIN_55_UART0_TX,
         .ctsPin = UARTCC32XX_PIN_UNASSIGNED,
@@ -764,8 +760,8 @@ const UARTCC32XX_HWAttrsV1 uartCC3220SHWAttrs[CC3220SF_LAUNCHXL_UARTCOUNT] = {
         .intNum = INT_UARTA1,
         .intPriority = (~0),
         .flowControl = UARTCC32XX_FLOWCTRL_NONE,
-        .ringBufPtr  = uartCC3220SRingBuffer[CC3220SF_LAUNCHXL_UART1],
-        .ringBufSize = sizeof(uartCC3220SRingBuffer[CC3220SF_LAUNCHXL_UART1]),
+        .ringBufPtr  = uartCC3235SRingBuffer[CC3235S_LAUNCHXL_UART1],
+        .ringBufSize = sizeof(uartCC3235SRingBuffer[CC3235S_LAUNCHXL_UART1]),
         .rxPin = UARTCC32XX_PIN_08_UART1_RX,
         .txPin = UARTCC32XX_PIN_07_UART1_TX,
         .ctsPin = UARTCC32XX_PIN_UNASSIGNED,
@@ -774,21 +770,21 @@ const UARTCC32XX_HWAttrsV1 uartCC3220SHWAttrs[CC3220SF_LAUNCHXL_UARTCOUNT] = {
     }
 };
 
-const UART_Config UART_config[CC3220SF_LAUNCHXL_UARTCOUNT] = {
+const UART_Config UART_config[CC3235S_LAUNCHXL_UARTCOUNT] = {
     {
         .fxnTablePtr = &UARTCC32XX_fxnTable,
-        .object = &uartCC3220SObjects[CC3220SF_LAUNCHXL_UART0],
-        .hwAttrs = &uartCC3220SHWAttrs[CC3220SF_LAUNCHXL_UART0]
+        .object = &uartCC3235SObjects[CC3235S_LAUNCHXL_UART0],
+        .hwAttrs = &uartCC3235SHWAttrs[CC3235S_LAUNCHXL_UART0]
     },
     {
         .fxnTablePtr = &UARTCC32XX_fxnTable,
-        .object = &uartCC3220SObjects[CC3220SF_LAUNCHXL_UART1],
-        .hwAttrs = &uartCC3220SHWAttrs[CC3220SF_LAUNCHXL_UART1]
+        .object = &uartCC3235SObjects[CC3235S_LAUNCHXL_UART1],
+        .hwAttrs = &uartCC3235SHWAttrs[CC3235S_LAUNCHXL_UART1]
     }
 };
 #endif /* TI_DRIVERS_UART_DMA */
 
-const uint_least8_t UART_count = CC3220SF_LAUNCHXL_UARTCOUNT;
+const uint_least8_t UART_count = CC3235S_LAUNCHXL_UARTCOUNT;
 
 /*
  *  =============================== Watchdog ===============================
@@ -796,9 +792,9 @@ const uint_least8_t UART_count = CC3220SF_LAUNCHXL_UARTCOUNT;
 #include <ti/drivers/Watchdog.h>
 #include <ti/drivers/watchdog/WatchdogCC32XX.h>
 
-WatchdogCC32XX_Object watchdogCC3220SObjects[CC3220SF_LAUNCHXL_WATCHDOGCOUNT];
+WatchdogCC32XX_Object watchdogCC3235SObjects[CC3235S_LAUNCHXL_WATCHDOGCOUNT];
 
-const WatchdogCC32XX_HWAttrs watchdogCC3220SHWAttrs[CC3220SF_LAUNCHXL_WATCHDOGCOUNT] = {
+const WatchdogCC32XX_HWAttrs watchdogCC3235SHWAttrs[CC3235S_LAUNCHXL_WATCHDOGCOUNT] = {
     {
         .baseAddr = WDT_BASE,
         .intNum = INT_WDT,
@@ -807,47 +803,12 @@ const WatchdogCC32XX_HWAttrs watchdogCC3220SHWAttrs[CC3220SF_LAUNCHXL_WATCHDOGCO
     }
 };
 
-const Watchdog_Config Watchdog_config[CC3220SF_LAUNCHXL_WATCHDOGCOUNT] = {
+const Watchdog_Config Watchdog_config[CC3235S_LAUNCHXL_WATCHDOGCOUNT] = {
     {
         .fxnTablePtr = &WatchdogCC32XX_fxnTable,
-        .object = &watchdogCC3220SObjects[CC3220SF_LAUNCHXL_WATCHDOG0],
-        .hwAttrs = &watchdogCC3220SHWAttrs[CC3220SF_LAUNCHXL_WATCHDOG0]
+        .object = &watchdogCC3235SObjects[CC3235S_LAUNCHXL_WATCHDOG0],
+        .hwAttrs = &watchdogCC3235SHWAttrs[CC3235S_LAUNCHXL_WATCHDOG0]
     }
 };
 
-const uint_least8_t Watchdog_count = CC3220SF_LAUNCHXL_WATCHDOGCOUNT;
-
-/*
- *  ======== Board_debugHeader ========
- *  This structure prevents the CC32XXSF bootloader from overwriting the
- *  internal FLASH; this allows us to flash a program that will not be
- *  overwritten by the bootloader with the encrypted program saved in
- *  "secure/serial flash".
- *
- *  This structure must be placed at the beginning of internal FLASH (so
- *  the bootloader is able to recognize that it should not overwrite
- *  internal FLASH).
- */
-#if defined (__SF_DEBUG__) || defined(__SF_NODEBUG__)
-#if defined(__TI_COMPILER_VERSION__)
-#pragma DATA_SECTION(Board_debugHeader, ".dbghdr")
-#pragma RETAIN(Board_debugHeader)
-#elif defined(__IAR_SYSTEMS_ICC__)
-#pragma location=".dbghdr"
-#elif defined(__GNUC__)
-__attribute__ ((section (".dbghdr")))
-#endif
-#if defined(__SF_DEBUG__)
-const uint32_t Board_debugHeader[] = {
-    0x5AA5A55A,
-    0x000FF800,
-    0xEFA3247D
-};
-#elif defined (__SF_NODEBUG__)
-const uint32_t Board_debugHeader[] = {
-    0xFFFFFFFF,
-    0xFFFFFFFF,
-    0xFFFFFFFF
-};
-#endif
-#endif
+const uint_least8_t Watchdog_count = CC3235S_LAUNCHXL_WATCHDOGCOUNT;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, Texas Instruments Incorporated
+ * Copyright (c) 2018-2019, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -96,7 +96,7 @@ int main(int argc, char *argv[])
     pthread_t azureThread;
     int status;
 
-    Board_initGeneral();
+    Board_init();
     GPIO_init();
     Network_init();
 

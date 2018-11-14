@@ -27,7 +27,12 @@ If you have installed the Azure SDK Plugin (i.e. did not just clone/download thi
 # Step 1: Prerequisites
 
 - Computer with Git client installed and access to [azure-iot-pal-simplelink](https://github.com/TexasInstruments/azure-iot-pal-simplelink), i.e. this BitBucket public repository.
-- [CC3220SF LaunchPad](http://www.ti.com/tool/cc3220sf-launchxl) or [CC3220S LaunchPad](http://www.ti.com/tool/cc3220s-launchxl) or [MSP432E4 LaunchPad](http://www.ti.com/tool/MSP-EXP432E401Y)
+- One of the following boards:
+    - [CC3220SF LaunchPad](http://www.ti.com/tool/cc3220sf-launchxl)
+    - [CC3220S LaunchPad](http://www.ti.com/tool/cc3220s-launchxl)
+    - [CC3235SF LaunchPad](http://www.ti.com/tool/launchxl-cc3235sf)
+    - [CC3235S LaunchPad](http://www.ti.com/tool/launchxl-cc3235s)
+    - [MSP432E4 LaunchPad](http://www.ti.com/tool/MSP-EXP432E401Y)
 - [Setup your IoT hub](https://catalog.azureiotsuite.com/docs?title=Azure/azure-iot-device-ecosystem/setup_iothub)
 - [Provision your device and get its credentials](https://catalog.azureiotsuite.com/docs?title=Azure/azure-iot-device-ecosystem/manage_iot_hub)
 
@@ -37,11 +42,12 @@ While not strictly required, we recommend that you install the following tools f
 
 - Install [Code Composer Studio (CCS) IDE, v8.2 or compatible](http://processors.wiki.ti.com/index.php/Download_CCS)
 
-- Install [TI SimpleLink Wi-Fi CC32XX Software Development Kit 2.30 or later](http://www.ti.com/tool/simplelink-cc3220-sdk) (for SimpleLink CC32XX only)
+- Install [TI SimpleLink Wi-Fi CC32XX Software Development Kit 2.40 or later](http://www.ti.com/tool/simplelink-cc32xx-sdk) (for SimpleLink CC32XX only)
 
-- Install [TI SimpleLink MSP432E4 Software Development Kit 2.30 or later](http://www.ti.com/tool/simplelink-msp432-sdk) (for SimpleLink MSP432E4 only)
+- Install [TI SimpleLink MSP432E4 Software Development Kit 2.40 or later](http://www.ti.com/tool/simplelink-msp432-sdk) (for SimpleLink MSP432E4 only)
 
-Please ensure that your device has been updated with the latest firmware and or service pack (instructions for updating the firmware and/or service pack are included with the SimpleLink SDK installation if applicable).
+Please ensure that your device has been updated with the latest firmware and or service pack. Also ensure it uses a certificate catalog that contains the BaltiMore CyberTrust Root CA.
+(instructions for updating the firmware, service pack, and/or certificate catalog are included with the SimpleLink SDK installation if applicable).
 
 <a name="Step-2-Build"></a>
 # Step 2: Build and Run the sample
@@ -51,11 +57,11 @@ Please ensure that your device has been updated with the latest firmware and or 
 1. Edit the `products.mak` file in `<AZURE_PAL_INSTALL_DIR>\build_all` using your favorite text editor. The variables `XDC_INSTALL_DIR` and `SIMPLELINK_<YOUR DEVICE>_SDK_INSTALL_DIR` must point to the locations where you installed these products. The variable `ti.targets.arm.elf.M4` for CC32xx or `ti.targets.arm.elf.M4F` for MSP432E4 should point to the installation location of the TI ARM compiler, which can be found in CCS. After modification, these variable definitions should look similar to the following. Note the use of "/" in the path.
 
   ```
-  XDC_INSTALL_DIR ?= c:/ti/xdctools_3_50_08_24_core
-  SIMPLELINK_CC32XX_SDK_INSTALL_DIR   ?= C:/ti/simplelink_cc32xx_sdk_2_30_00_05
-  ti.targets.arm.elf.M4  ?= C:/CCSv8.2.0/ccsv8/tools/compiler/ti-cgt-arm_18.1.3.LTS
+  XDC_INSTALL_DIR ?= c:/ti/xdctools_3_51_01_18_core
+  SIMPLELINK_CC32XX_SDK_INSTALL_DIR   ?= C:/ti/simplelink_cc32xx_sdk_2_40_01_01
+  ti.targets.arm.elf.M4  ?= C:/CCSv8.2.0/ccsv8/tools/compiler/ti-cgt-arm_18.1.4.LTS
   ```
-It is also recommended that you add the xdc tools folder (```C:/ti/xdctools_3_50_08_24_core```) to your path in order to avoid errors related to finding `gmake.exe` during the build process.
+It is also recommended that you add the xdc tools folder (```C:/ti/xdctools_3_51_01_18_core```) to your path in order to avoid errors related to finding `gmake.exe` during the build process.
 
 2. Open a Windows command prompt.
 
@@ -63,8 +69,8 @@ It is also recommended that you add the xdc tools folder (```C:/ti/xdctools_3_50
 
   ```
   cd <AZURE_PAL_INSTALL_DIR>\build_all
-  C:\ti\xdctools_3_50_08_24_core\gmake.exe clean
-  C:\ti\xdctools_3_50_08_24_core\gmake.exe all
+  C:\ti\xdctools_3_51_01_18_core\gmake.exe clean
+  C:\ti\xdctools_3_51_01_18_core\gmake.exe all
   ```
 
 <a name="Build-OS"></a>
@@ -76,8 +82,8 @@ It is also recommended that you add the xdc tools folder (```C:/ti/xdctools_3_50
 3. In the Windows command prompt, enter the following commands to build the OS:
 
   ```
-  C:\ti\xdctools_3_50_08_24_core\gmake.exe clean
-  C:\ti\xdctools_3_50_08_24_core\gmake.exe
+  C:\ti\xdctools_3_51_01_18_core\gmake.exe clean
+  C:\ti\xdctools_3_51_01_18_core\gmake.exe
   ```
 
 <a name="Build-SAMPLE"></a>
@@ -87,14 +93,14 @@ Before building the application, complete the following steps:
 
 1. Open the `simplesample_http.c` file from the directory `<AZURE_PAL_INSTALL_DIR>\sample` in a text editor and replace the value of the "connectionString" variable with the device connection string you noted [earlier](#Step-1-Prerequisites).
 
-2. (For CC32xx only) Open the file `CC3220S_LAUNCHXL/wificonfig.h` or `CC3220SF_LAUNCHXL/wificonfig.h` depending on the LaunchPad you have. Search for "USER STEP" and update the WIFI SSID and SECURITY_KEY macros.
+2. (For CC32xx only) Open the file `CC3220SF_LAUNCHXL/wificonfig.h` (substitute 'CC3220SF' with the variant of the LaunchPad you have). Search for "USER STEP" and update the WIFI SSID and SECURITY_KEY macros.
 
 3. In the Windows command prompt, enter the following commands to build the application (replace `CC3220SF_LAUNCHXL` with your platform name):
 
   ```
   cd <AZURE_PAL_INSTALL_DIR>\sample\CC3220SF_LAUNCHXL\tirtos\ccs
-  C:\ti\xdctools_3_50_08_24_core\gmake.exe clean
-  C:\ti\xdctools_3_50_08_24_core\gmake.exe all
+  C:\ti\xdctools_3_51_01_18_core\gmake.exe clean
+  C:\ti\xdctools_3_51_01_18_core\gmake.exe all
   ```
 
 <a name="Flash-SAMPLE"></a>
@@ -129,7 +135,7 @@ We show the procedure for CC32xx devices below, but the same procedure can be fo
 
 6. Use `CC32xx.ccxml` as "File name". Hit Finish.
 
-7. In the Basic window, select "Texas Instruments XDS110 USB Debug Probe" as the "Connection", and then type "CC3220" in the "Board or Device" text field. Check the box next to "CC3220SF" or "CC3220S" (depending on your LaunchPad). Hit Save.
+7. In the Basic window, select "Texas Instruments XDS110 USB Debug Probe" as the "Connection", and then type "CC32" in the "Board or Device" text field. Check the box next to the device you have (depending on your LaunchPad). Hit Save.
 
 8. Right-click "CC32xx.ccxml" in the Target Configurations View. Hit Launch Selected Configuration.
 

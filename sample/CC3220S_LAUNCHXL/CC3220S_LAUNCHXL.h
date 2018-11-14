@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, Texas Instruments Incorporated
+ * Copyright (c) 2016-2019, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -102,6 +102,8 @@ typedef enum CC3220S_LAUNCHXL_GPIOName {
      */
     /* CC3220S_LAUNCHXL_GPIO_LED_D9, */
     /* CC3220S_LAUNCHXL_GPIO_LED_D8, */
+
+    CC3220S_LAUNCHXL_GPIO_TMP116_EN,
 
     /* Sharp LCD Pins */
     CC3220S_LAUNCHXL_LCD_CS,

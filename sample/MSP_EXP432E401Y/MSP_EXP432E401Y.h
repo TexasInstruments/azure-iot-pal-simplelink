@@ -90,6 +90,43 @@ typedef enum MSP_EXP432E401Y_ADCBuf0ChannelName {
 } MSP_EXP432E401Y_ADCBuf0ChannelName;
 
 /*!
+ *  @def    MSP_EXP432E401Y_AESCBCName
+ *  @brief  Enum of virtual AESCBC instances on the MSP_EXP432E401Y dev board
+ */
+typedef enum MSP_EXP432E401Y_AESCBCName {
+    MSP_EXP432E401Y_AESCBC0 = 0,
+    MSP_EXP432E401Y_AESCBCCOUNT
+} MSP_EXP432E401Y_AESCBCName;
+
+/*!
+ *  @def    MSP_EXP432E401Y_AESCTRName
+ *  @brief  Enum of virtual AESCTR instances on the MSP_EXP432E401Y dev board
+ */
+typedef enum MSP_EXP432E401Y_AESCTRName {
+    MSP_EXP432E401Y_AESCTR0 = 0,
+    MSP_EXP432E401Y_AESCTRCOUNT
+} MSP_EXP432E401Y_AESCTRName;
+
+/*!
+ *  @def    MSP_EXP432E401Y_AESCCMName
+ *  @brief  Enum of virtual AESCCM instances on the MSP_EXP432E401Y dev board
+ */
+typedef enum MSP_EXP432E401Y_AESCCMName {
+    MSP_EXP432E401Y_AESCCM0 = 0,
+    MSP_EXP432E401Y_AESCCMCOUNT
+} MSP_EXP432E401Y_AESCCMName;
+
+/*!
+ *  @def    MSP_EXP432E401Y_AESGCMName
+ *  @brief  Enum of virtual AESGCM instances on the MSP_EXP432E401Y dev board
+ */
+typedef enum MSP_EXP432E401Y_AESGCMName {
+    MSP_EXP432E401Y_AESGCM0 = 0,
+    MSP_EXP432E401Y_AESGCMCOUNT
+} MSP_EXP432E401Y_AESGCMName;
+
+
+/*!
  *  @def    MSP_EXP432E401Y_CANName
  *  @brief  Enum of CAN controllers on the MSP_EXP432E401Y dev board
  */
@@ -111,6 +148,7 @@ typedef enum MSP_EXP432E401Y_GPIOName {
     MSP_EXP432E401Y_SPI_SLAVE_READY,
     MSP_EXP432E401Y_GPIO_D1,
     MSP_EXP432E401Y_GPIO_D2,
+    MSP_EXP432E401Y_GPIO_TMP116_EN,
 
     MSP_EXP432E401Y_SDSPI_CS,
 
@@ -128,7 +166,6 @@ typedef enum MSP_EXP432E401Y_GPIOName {
  */
 typedef enum MSP_EXP432E401Y_I2CName {
     MSP_EXP432E401Y_I2C0 = 0,
-    MSP_EXP432E401Y_I2C7,
 
     MSP_EXP432E401Y_I2CCOUNT
 } MSP_EXP432E401Y_I2CName;
@@ -172,6 +209,16 @@ typedef enum MSP_EXP432E401Y_SDName {
 
     MSP_EXP432E401Y_SDCOUNT
 } MSP_EXP432E401Y_SDName;
+
+/*!
+ *  @def    MSP_EXP432E401Y_SHA2Name
+ *  @brief  Enum of SHA2 driver instance names on the MSP_EXP432E401Y dev board
+ */
+typedef enum MSP_EXP432E401Y_SHA2Name {
+    MSP_EXP432E401Y_SHA20 = 0,
+
+    MSP_EXP432E401Y_SHA2COUNT
+} MSP_EXP432E401Y_SHA2Name;
 
 /*!
  *  @def    MSP_EXP432E401Y_SPIName

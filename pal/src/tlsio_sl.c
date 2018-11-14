@@ -24,6 +24,7 @@
 #include "azure_c_shared_utility/optimize_size.h"
 #include "azure_c_shared_utility/tlsio.h"
 #include "azure_c_shared_utility/crt_abstractions.h"
+#include "azure_c_shared_utility/shared_util_options.h"
 #include "azure_c_shared_utility/threadapi.h"
 
 /*
@@ -52,6 +53,8 @@ typedef struct TLS_IO_INSTANCE_TAG
     void* on_io_open_complete_context;
     void* on_io_close_complete_context;
     void* on_io_error_context;
+    const char* x509_certificate;
+    const char* x509_private_key;
     TLSIO_STATE_ENUM tlsio_state;
     ON_SEND_COMPLETE on_send_complete;
     void* on_send_complete_callback_context;
@@ -60,6 +63,64 @@ typedef struct TLS_IO_INSTANCE_TAG
     int sock;
     SlNetSockSecAttrib_t *sec_attrib_hdl;
 } TLS_IO_INSTANCE;
+
+/* this function clones an option given by name and value */
+static void * tlsio_sl_cloneoption(const char *name, const void *value)
+{
+    void *result = NULL;
+
+    if ((name == NULL) || (value == NULL)) {
+        LogError("invalid parameter detected: name=%p, value=%p", name, value);
+        result = NULL;
+    }
+    else {
+        if (strcmp(name, SU_OPTION_X509_CERT) == 0) {
+            if (mallocAndStrcpy_s((char**)&result, value) != 0) {
+                LogError("unable to mallocAndStrcpy_s x509certificate value");
+                result = NULL;
+            }
+        }
+        else if (strcmp(name, SU_OPTION_X509_PRIVATE_KEY) == 0) {
+            if (mallocAndStrcpy_s((char**)&result, value) != 0) {
+                LogError("unable to mallocAndStrcpy_s x509privatekey value");
+                result = NULL;
+            }
+        }
+        else if (strcmp(name, OPTION_X509_ECC_CERT) == 0) {
+            if (mallocAndStrcpy_s((char**)&result, value) != 0) {
+                LogError("unable to mallocAndStrcpy_s x509EccCertificate value");
+                result = NULL;
+            }
+        }
+        else if (strcmp(name, OPTION_X509_ECC_KEY) == 0) {
+            if (mallocAndStrcpy_s((char**)&result, value) != 0) {
+                LogError("unable to mallocAndStrcpy_s x509EccKey value");
+                result = NULL;
+            }
+        }
+    }
+
+    return result;
+}
+
+/* this function destroys an option previously created */
+static void tlsio_sl_destroyoption(const char* name, const void* value)
+{
+    if ((name == NULL) || (value == NULL)) {
+        LogError("invalid parameter detected: name=%p, value=%p", name, value);
+    }
+    else {
+        if ((strcmp(name, SU_OPTION_X509_CERT) == 0) ||
+                (strcmp(name, SU_OPTION_X509_PRIVATE_KEY) == 0) ||
+                (strcmp(name, OPTION_X509_ECC_CERT) == 0) ||
+                (strcmp(name, OPTION_X509_ECC_KEY) == 0)) {
+            free((void*)value);
+        }
+        else {
+            LogError("not handled option : %s", name);
+        }
+    }
+}
 
 static const IO_INTERFACE_DESCRIPTION tlsio_sl_interface_description =
 {
@@ -94,8 +155,42 @@ static int init_sockaddr(struct sockaddr *addr, int port, const char *hostname)
 
 OPTIONHANDLER_HANDLE tlsio_sl_retrieveoptions(CONCRETE_IO_HANDLE handle)
 {
-    (void)handle;
-    return NULL;
+    OPTIONHANDLER_HANDLE result;
+
+    if (handle == NULL) {
+        LogError("invalid parameter detected: CONCRETE_IO_HANDLE handle=%p", handle);
+        result = NULL;
+    }
+    else {
+        result = OptionHandler_Create(tlsio_sl_cloneoption,
+                tlsio_sl_destroyoption, tlsio_sl_setoption);
+        if (result == NULL) {
+            LogError("unable to OptionHandler_Create");
+        }
+        else {
+            TLS_IO_INSTANCE* tls_io_instance = (TLS_IO_INSTANCE*)handle;
+
+            if (tls_io_instance->x509_certificate != NULL &&
+                    (OptionHandler_AddOption(result, SU_OPTION_X509_CERT,
+                    tls_io_instance->x509_certificate) != OPTIONHANDLER_OK)) {
+                LogError("unable to save x509 certificate option");
+                OptionHandler_Destroy(result);
+                result = NULL;
+            }
+            else if (tls_io_instance->x509_private_key != NULL &&
+                    (OptionHandler_AddOption(result, SU_OPTION_X509_PRIVATE_KEY,
+                    tls_io_instance->x509_private_key) != OPTIONHANDLER_OK)) {
+                LogError("unable to save x509 privatekey option");
+                OptionHandler_Destroy(result);
+                result = NULL;
+            }
+            else {
+                /* all is fine, all interesting options have been saved */
+            }
+        }
+    }
+
+    return result;
 }
 
 CONCRETE_IO_HANDLE tlsio_sl_create(void* io_create_parameters)
@@ -156,6 +251,12 @@ void tlsio_sl_destroy(CONCRETE_IO_HANDLE tls_io)
         }
         if (tls_io_instance->hostname != NULL) {
             free(tls_io_instance->hostname);
+        }
+        if (tls_io_instance->x509_certificate != NULL) {
+            free((void *)tls_io_instance->x509_certificate);
+        }
+        if (tls_io_instance->x509_private_key != NULL) {
+            free((void *)tls_io_instance->x509_private_key);
         }
         if (tls_io_instance->sec_attrib_hdl != NULL) {
             SlNetSock_secAttribDelete(tls_io_instance->sec_attrib_hdl);
@@ -424,16 +525,44 @@ int tlsio_sl_setoption(CONCRETE_IO_HANDLE tls_io, const char* optionName,
      * platforms where this is supported, as opposed to necessarily
      * bundling them into the executable.
      */
-    if ((strcmp("x509EccCertificate", optionName) == 0) ||
-           (strcmp("x509certificate", optionName) == 0)) {
+    if ((strcmp(OPTION_X509_ECC_CERT, optionName) == 0) ||
+           (strcmp(SU_OPTION_X509_CERT, optionName) == 0)) {
+        if (tls_io_instance->x509_certificate != NULL) {
+            LogError("unable to set x509 options more than once");
+            result = __FAILURE__;
+        }
+        else {
+            /* let's make a persistent copy of this option */
+            if (mallocAndStrcpy_s((char**)&tls_io_instance->x509_certificate,
+                    value) != 0) {
+                LogError("unable to mallocAndStrcpy_s %s", optionName);
+                result = __FAILURE__;
+            }
+        }
+
         result = SlNetSock_secAttribSet(tls_io_instance->sec_attrib_hdl,
-                SLNETSOCK_SEC_ATTRIB_LOCAL_CERT, (void *)value,
+                SLNETSOCK_SEC_ATTRIB_LOCAL_CERT,
+                (void *)tls_io_instance->x509_certificate,
                 strlen(value));
     }
-    else if ((strcmp("x509EccAliasKey", optionName) == 0) ||
-            (strcmp("x509privatekey", optionName) == 0)) {
+    else if ((strcmp(OPTION_X509_ECC_KEY, optionName) == 0) ||
+            (strcmp(SU_OPTION_X509_PRIVATE_KEY, optionName) == 0)) {
+        if (tls_io_instance->x509_private_key != NULL) {
+            LogError("unable to set more than once x509 options");
+            result = __FAILURE__;
+        }
+        else {
+            /* let's make a persistent copy of this option */
+            if (mallocAndStrcpy_s((char**)&tls_io_instance->x509_private_key,
+                    value) != 0) {
+                LogError("unable to mallocAndStrcpy_s %s", optionName);
+                result = __FAILURE__;
+            }
+        }
+
         result = SlNetSock_secAttribSet(tls_io_instance->sec_attrib_hdl,
-                SLNETSOCK_SEC_ATTRIB_PRIVATE_KEY, (void *)value,
+                SLNETSOCK_SEC_ATTRIB_PRIVATE_KEY,
+                (void *)tls_io_instance->x509_private_key,
                 strlen(value));
     }
 

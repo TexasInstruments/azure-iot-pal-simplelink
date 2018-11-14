@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, Texas Instruments Incorporated
+ * Copyright (c) 2016-2019, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,6 +41,7 @@ extern "C" {
 
 #include "CC3220S_LAUNCHXL.h"
 
+#define Board_init                   CC3220S_LAUNCHXL_initGeneral
 #define Board_initGeneral            CC3220S_LAUNCHXL_initGeneral
 
 /* These #defines allow us to reuse TI-RTOS across other device families */
@@ -66,6 +67,8 @@ extern "C" {
 
 #define Board_GPIO_BUTTON0           CC3220S_LAUNCHXL_GPIO_SW2
 #define Board_GPIO_BUTTON1           CC3220S_LAUNCHXL_GPIO_SW3
+
+#define Board_GPIO_TMP116_EN         CC3220S_LAUNCHXL_GPIO_TMP116_EN
 
 #define Board_I2C0                   CC3220S_LAUNCHXL_I2C0
 #define Board_I2C_TMP                CC3220S_LAUNCHXL_I2C0
@@ -96,9 +99,9 @@ extern "C" {
 
 #define Board_WATCHDOG0              CC3220S_LAUNCHXL_WATCHDOG0
 
-/* Board specific I2C addresses */
-#define Board_TMP_ADDR               (0x41)
-#define Board_SENSORS_BP_TMP_ADDR    (0x40)
+/* Board specific I2C address */
+#define Board_TMP006_ADDR            (0x41)
+#define Board_I2C_TMP006_ADDR        Board_TMP006_ADDR
 
 #ifdef __cplusplus
 }
