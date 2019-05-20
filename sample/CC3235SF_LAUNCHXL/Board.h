@@ -39,10 +39,11 @@
 extern "C" {
 #endif
 
-#include "CC3235SF_LAUNCHXL.h"
+#include <ti/drivers/Board.h>
 
-#define Board_init                   CC3235SF_LAUNCHXL_initGeneral
-#define Board_initGeneral            CC3235SF_LAUNCHXL_initGeneral
+#define Board_initGeneral()     Board_init()  /* deprecated */
+
+#include "CC3235SF_LAUNCHXL.h"
 
 #define Board_ADC0                   CC3235SF_LAUNCHXL_ADC0
 #define Board_ADC1                   CC3235SF_LAUNCHXL_ADC1

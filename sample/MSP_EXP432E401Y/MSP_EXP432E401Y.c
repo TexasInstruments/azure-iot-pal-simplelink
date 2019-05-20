@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, Texas Instruments Incorporated
+ * Copyright (c) 2017-2019, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -188,6 +188,27 @@ const ADCBuf_Config ADCBuf_config[MSP_EXP432E401Y_ADCBUFCOUNT] = {
 const uint_least8_t ADCBuf_count = MSP_EXP432E401Y_ADCBUFCOUNT;
 
 /*
+ *  =============================== AESECB ===============================
+ */
+#include <ti/drivers/AESECB.h>
+#include <ti/drivers/aesecb/AESECBMSP432E4.h>
+
+AESECBMSP432E4_Object aesecbMSP432E4Objects[MSP_EXP432E401Y_AESECBCOUNT];
+
+const AESECBMSP432E4_HWAttrs aesecbMSP432E4HWAttrs[MSP_EXP432E401Y_AESECBCOUNT] = {
+    {0}
+};
+
+const AESECB_Config AESECB_config[MSP_EXP432E401Y_AESECBCOUNT] = {
+    {
+         .object  = &aesecbMSP432E4Objects[MSP_EXP432E401Y_AESECB0],
+         .hwAttrs = &aesecbMSP432E4HWAttrs[MSP_EXP432E401Y_AESECB0]
+    },
+};
+
+const uint_least8_t AESECB_count = MSP_EXP432E401Y_AESECBCOUNT;
+
+/*
  *  =============================== AESCBC ===============================
  */
 #include <ti/drivers/AESCBC.h>
@@ -282,6 +303,30 @@ const uint_least8_t AESGCM_count = MSP_EXP432E401Y_AESGCMCOUNT;
 
 
 /*
+ *  =============================== AESCTRDRBG ===============================
+ */
+#include <ti/drivers/AESCTRDRBG.h>
+#include <ti/drivers/aesctrdrbg/AESCTRDRBGXX.h>
+
+AESCTRDRBGXX_Object aesctrdrbgXXObjects[MSP_EXP432E401Y_AESCTRDRBGCOUNT];
+
+const AESCTRDRBGXX_HWAttrs aesctrdrbgXXHWAttrs[MSP_EXP432E401Y_AESCTRDRBGCOUNT] = {
+    {
+        .aesctrIndex       = MSP_EXP432E401Y_AESCTR0,
+    }
+};
+
+const AESCTRDRBG_Config AESCTRDRBG_config[MSP_EXP432E401Y_AESCTRDRBGCOUNT] = {
+    {
+         .object  = &aesctrdrbgXXObjects[MSP_EXP432E401Y_AESCTRDRBG0],
+         .hwAttrs = &aesctrdrbgXXHWAttrs[MSP_EXP432E401Y_AESCTRDRBG0]
+    },
+};
+
+const uint_least8_t AESCTRDRBG_count = MSP_EXP432E401Y_AESCTRDRBGCOUNT;
+
+
+/*
  *  =============================== CAN ===============================
  */
 #include <ti/drivers/CAN.h>
@@ -335,6 +380,23 @@ const CAN_Config CAN_config[MSP_EXP432E401Y_CANCOUNT] = {
 };
 
 const uint_least8_t CAN_count = MSP_EXP432E401Y_CANCOUNT;
+
+/*
+ *  =============================== CRC ===============================
+ */
+#include <ti/drivers/CRC.h>
+#include <ti/drivers/crc/CRCMSP432E4.h>
+
+CRCMSP432E4_Object crcMSP432E4Objects[MSP_EXP432E401Y_CRCCOUNT];
+
+const CRC_Config CRC_config[MSP_EXP432E401Y_CRCCOUNT] = {
+    {
+         .object  = &crcMSP432E4Objects[MSP_EXP432E401Y_CRC0],
+         .hwAttrs = NULL
+    },
+};
+
+const uint_least8_t CRC_count = MSP_EXP432E401Y_CRCCOUNT;
 
 /*
  *  ============================= Display =============================
@@ -472,6 +534,14 @@ void MSP_EXP432E401Y_initGeneral(void)
      *     2 * (511 + 1) KB = 1024 KB (1 MB)
      */
     FLASH_CTRL->DMASZ = 511;
+}
+
+/*
+ *  ======== Board_init ========
+ */
+void Board_init(void)
+{
+    MSP_EXP432E401Y_initGeneral();
 }
 
 /*

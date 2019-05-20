@@ -40,11 +40,11 @@ These instructions refer to the folder that contains the Azure PAL repository on
 
 While not strictly required, we recommend that you install the following tools from TI in the same directory and that you use directory names without any whitespace. This documentation assumes that you install everything in `C:\ti`.
 
-- Install [Code Composer Studio (CCS) IDE, v8.2 or compatible](http://processors.wiki.ti.com/index.php/Download_CCS)
+- Install [Code Composer Studio (CCS) IDE, v9.1 or compatible](http://processors.wiki.ti.com/index.php/Download_CCS)
 
-- Install [TI SimpleLink Wi-Fi CC32XX Software Development Kit 2.40 or later](http://www.ti.com/tool/simplelink-cc32xx-sdk) (for SimpleLink CC32XX only)
+- Install [TI SimpleLink Wi-Fi CC32XX Software Development Kit 3.20 or compatible](http://www.ti.com/tool/simplelink-cc32xx-sdk) (for SimpleLink CC32XX only)
 
-- Install [TI SimpleLink MSP432E4 Software Development Kit 2.40 or later](http://www.ti.com/tool/simplelink-msp432-sdk) (for SimpleLink MSP432E4 only)
+- Install [TI SimpleLink MSP432E4 Software Development Kit 3.20 or compatible](http://www.ti.com/tool/simplelink-msp432-sdk) (for SimpleLink MSP432E4 only)
 
 Please ensure that your device has been updated with the latest firmware and or service pack. Also ensure it uses a certificate catalog that contains the BaltiMore CyberTrust Root CA.
 (instructions for updating the firmware, service pack, and/or certificate catalog are included with the SimpleLink SDK installation if applicable).
@@ -57,11 +57,11 @@ Please ensure that your device has been updated with the latest firmware and or 
 1. Edit the `products.mak` file in `<AZURE_PAL_INSTALL_DIR>\build_all` using your favorite text editor. The variables `XDC_INSTALL_DIR` and `SIMPLELINK_<YOUR DEVICE>_SDK_INSTALL_DIR` must point to the locations where you installed these products. The variable `ti.targets.arm.elf.M4` for CC32xx or `ti.targets.arm.elf.M4F` for MSP432E4 should point to the installation location of the TI ARM compiler, which can be found in CCS. After modification, these variable definitions should look similar to the following. Note the use of "/" in the path.
 
   ```
-  XDC_INSTALL_DIR ?= c:/ti/xdctools_3_51_01_18_core
-  SIMPLELINK_CC32XX_SDK_INSTALL_DIR   ?= C:/ti/simplelink_cc32xx_sdk_2_40_01_01
-  ti.targets.arm.elf.M4  ?= C:/CCSv8.2.0/ccsv8/tools/compiler/ti-cgt-arm_18.1.4.LTS
+  XDC_INSTALL_DIR ?= c:/ti/xdctools_3_51_03_28_core
+  SIMPLELINK_CC32XX_SDK_INSTALL_DIR   ?= C:/ti/simplelink_cc32xx_sdk_3_20_00_06
+  ti.targets.arm.elf.M4  ?= C:/ti/ccs910/ccs/tools/compiler/ti-cgt-arm_18.12.2.LTS
   ```
-It is also recommended that you add the xdc tools folder (```C:/ti/xdctools_3_51_01_18_core```) to your path in order to avoid errors related to finding `gmake.exe` during the build process.
+It is also recommended that you add the xdc tools folder (```C:/ti/xdctools_3_51_03_28_core```) to your path in order to avoid errors related to finding `gmake.exe` during the build process.
 
 2. Open a Windows command prompt.
 
@@ -69,8 +69,8 @@ It is also recommended that you add the xdc tools folder (```C:/ti/xdctools_3_51
 
   ```
   cd <AZURE_PAL_INSTALL_DIR>\build_all
-  C:\ti\xdctools_3_51_01_18_core\gmake.exe clean
-  C:\ti\xdctools_3_51_01_18_core\gmake.exe all
+  C:\ti\xdctools_3_51_03_28_core\gmake.exe clean
+  C:\ti\xdctools_3_51_03_28_core\gmake.exe all
   ```
 
 <a name="Build-OS"></a>
@@ -82,8 +82,8 @@ It is also recommended that you add the xdc tools folder (```C:/ti/xdctools_3_51
 3. In the Windows command prompt, enter the following commands to build the OS:
 
   ```
-  C:\ti\xdctools_3_51_01_18_core\gmake.exe clean
-  C:\ti\xdctools_3_51_01_18_core\gmake.exe
+  C:\ti\xdctools_3_51_03_28_core\gmake.exe clean
+  C:\ti\xdctools_3_51_03_28_core\gmake.exe
   ```
 
 <a name="Build-SAMPLE"></a>
@@ -99,8 +99,8 @@ Before building the application, complete the following steps:
 
   ```
   cd <AZURE_PAL_INSTALL_DIR>\sample\CC3220SF_LAUNCHXL\tirtos\ccs
-  C:\ti\xdctools_3_51_01_18_core\gmake.exe clean
-  C:\ti\xdctools_3_51_01_18_core\gmake.exe all
+  C:\ti\xdctools_3_51_03_28_core\gmake.exe clean
+  C:\ti\xdctools_3_51_03_28_core\gmake.exe all
   ```
 
 <a name="Flash-SAMPLE"></a>
@@ -169,7 +169,7 @@ The [Device Explorer](https://github.com/Azure/azure-iot-sdk-csharp/tree/master/
 
 <a name="DPS"></a>
 # Device Provisioning Service support
-Support for Device Provisioning Service (DPS) can be enabled in the libraries by setting `use_prov_client` to `true` in the `products.mak` file, and rebuilding the libraries. However, enabling it implies the libraries expect DPS to be used at the application level. As a result, it causes applications that are not using DPS to fail to build, including the simplesample_http sample application in this PAL repository, given it does not implement the HSM interface required by DPS.
+Support for Device Provisioning Service (DPS) is enabled by using the provisioning version of the libraries, e.g. `common_sl_prov_release.a`. However, using these libraries expect DPS to be used at the application level. As a result, it causes applications that are not using DPS to fail to build, including the simplesample_http sample application in this PAL repository, given it does not implement the HSM interface required by DPS.
 
 If you are interested in turning on DPS support, it is recommended to download and install the [TI SimpleLink SDK Plugin for Microsoft Azure](http://www.ti.com/tool/SIMPLELINK-SDK-PLUGIN-FOR-AZUREIOT). There is an example (`prov_dev_client_ll_sample`) in the Plugin that uses DPS and would be a more suitable starting point.
 

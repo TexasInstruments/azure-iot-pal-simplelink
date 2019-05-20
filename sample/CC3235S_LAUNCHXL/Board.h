@@ -39,10 +39,11 @@
 extern "C" {
 #endif
 
-#include "CC3235S_LAUNCHXL.h"
+#include <ti/drivers/Board.h>
 
-#define Board_init                   CC3235S_LAUNCHXL_initGeneral
-#define Board_initGeneral            CC3235S_LAUNCHXL_initGeneral
+#define Board_initGeneral()     Board_init()  /* deprecated */
+
+#include "CC3235S_LAUNCHXL.h"
 
 /* These #defines allow us to reuse TI-RTOS across other device families */
 

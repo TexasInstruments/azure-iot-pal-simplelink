@@ -37,6 +37,8 @@
 var Build = xdc.useModule('xdc.bld.BuildEnvironment');
 var Pkg = xdc.useModule('xdc.bld.PackageContents');
 
+Pkg.otherFiles = ["package.bld"];
+
 /* make command to search for the srcs */
 Pkg.makePrologue = "vpath %.c ../../pal/src";
 
@@ -57,7 +59,10 @@ xdcargs = java.lang.System.getenv("XDCARGS").split(" ");
 
 var slIncs = "";
 var incs = "";
+var cc32xxIncs = "";
+var msp432Incs = "";
 var palIncs = "-I../../pal/inc -I../../sdk/c-utility/inc -I../../sdk/deps/parson ";
+var releases = new Array();
 
 /* Parse out the XDCARGS options for the include source paths */
 for (x = 0; x < xdcargs.length; x++) {
@@ -66,7 +71,7 @@ for (x = 0; x < xdcargs.length; x++) {
         incs = incs.substring(incs.indexOf('=') + 1);
         if (incs != "\"\"") {
             incs += "/source";
-            slIncs = "-I" + incs + " -I" + incs + "/include -I" + incs
+            cc32xxIncs = "-I" + incs + " -I" + incs + "/include -I" + incs
                     + "/ti/net/bsd -I" + incs;
         }
     }
@@ -75,16 +80,20 @@ for (x = 0; x < xdcargs.length; x++) {
         incs = (xdcargs[x] + "").replace(/'/g, '');
         incs = incs.substring(incs.indexOf('=') + 1);
         if (incs != "\"\"") {
-            if (slIncs != "") {
-                throw("Error: Please fill in only one set of variables "
-                        + "in products.mak corresponding to your platform");
-            }
-
             incs += "/source";
-            slIncs = "-I" + incs + " -I" + incs + "/include -I" + incs
+            msp432Incs = "-I" + incs + " -I" + incs + "/include -I" + incs
                     + "/ti/net/bsd -I" + incs;
         }
     }
+}
+
+/* Device-specific package releases */
+for (var i = 0; i < devices.length; i++) {
+    var device = devices[i];
+
+    releases[device] = Pkg.addRelease(Pkg.name.replace(/\./g, '_') +
+            "," + device);
+    releases[device].attrs.label = device;
 }
 
 for (var i = 0; i < Build.targets.length; i++) {
@@ -93,10 +102,19 @@ for (var i = 0; i < Build.targets.length; i++) {
     var extraOpts;
     var posixIncs;
 
+    if ((target.suffix == "em4") || (target.suffix == "rm4") ||
+            (target.suffix == "m4g")) {
+        slIncs = cc32xxIncs;
+    }
+    else if ((target.suffix == "em4f") || (target.suffix == "rm4f") ||
+            (target.suffix == "m4fg")) {
+        slIncs = msp432Incs;
+    }
+
     for (var profile in target.profiles) {
-        var defs = "";
         posixIncs = "/ti/posix" + "/" +
             getPosixIncDirectory(target.suffix) + " ";
+
         extraOpts = palIncs;
         /* Add back unused warnings in PAL */
         if (target.$name.split(".")[0] == "gnu") {
@@ -105,12 +123,23 @@ for (var i = 0; i < Build.targets.length; i++) {
         if (profile == "release") {
             extraOpts += " -DNO_LOGGING ";
         }
-        Pkg.addLibrary(libdir + "/pal_sl_" + profile,
-            target, {
-                profile: profile,
-                defs: "-DNET_SL -DREFCOUNT_ATOMIC_DONTCARE " + extraOpts,
-                incs: slIncs + posixIncs,
-                suffix: '.a'
-            }).addObjects(SRCS_PAL);
+        Pkg.addLibrary(libdir + "/pal_sl_" + profile, target, {
+            profile: profile,
+            defs: "-DNET_SL -DREFCOUNT_ATOMIC_DONTCARE " + extraOpts,
+            incs: slIncs + posixIncs,
+            suffix: '.a'
+        }).addObjects(SRCS_PAL);
+
+        if ((target.suffix == "em4") || (target.suffix == "rm4") ||
+                (target.suffix == "m4g")) {
+            releases["cc32xx"].otherFiles.$add(libdir + "/pal_sl_" + profile +
+                    ".a");
+        }
+        else if ((target.suffix == "em4f") || (target.suffix == "rm4f") ||
+                (target.suffix == "m4fg")) {
+            releases["msp432e4"].otherFiles.$add(libdir + "/pal_sl_" + profile +
+                    ".a");
+        }
+        
     }
 }

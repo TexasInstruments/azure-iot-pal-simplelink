@@ -18,6 +18,7 @@ tdiff,*
 .smmakefirst
 .cg*
 .*tools-*
+*.tar
 .xdcenv.mak
 .bin-files,cmds
 .src-files

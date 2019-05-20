@@ -27,9 +27,6 @@ XDC_INSTALL_DIR    ?=
 
 ######################## Optional ########################
 FREERTOS_INSTALL_DIR   ?=
-# set to true if support for Device Provisioning Service is needed
-use_prov_client = false
-
 
 ################################################################
 # Fill in the variable set corresponding to your platform      #

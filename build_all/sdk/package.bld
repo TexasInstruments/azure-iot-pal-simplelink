@@ -37,6 +37,8 @@
 var Build = xdc.useModule('xdc.bld.BuildEnvironment');
 var Pkg = xdc.useModule('xdc.bld.PackageContents');
 
+Pkg.otherFiles = ["package.bld"];
+
 /* make command to search for the srcs */
 Pkg.makePrologue = "vpath %.c ../../sdk/c-utility/src " +
                    "../../sdk/c-utility/adapters " +
@@ -102,6 +104,7 @@ var SRCS_IOTHUB_CLIENT = [
     "iothub_client_ll_uploadtoblob.c",
     "iothub_client_retry_control.c",
     "iothub_message.c",
+    "iothub_transport_ll_private.c",
     "iothubtransport.c",
     "iothubtransporthttp.c",
     "iothubtransportmqtt.c",
@@ -134,7 +137,6 @@ var SRCS_UMQTT = [
     "mqtt_message.c"
 ];
 
-
 var SRCS_PROVISIONING_CLIENT = [
     "prov_auth_client.c",
     "prov_security_factory.c",
@@ -156,9 +158,11 @@ xdcargs = java.lang.System.getenv("XDCARGS").split(" ");
 
 var slIncs = "";
 var incs = "";
+var cc32xxIncs = "";
+var msp432Incs = "";
 var commonIncs = "-I../../pal/inc -I../../sdk/c-utility/inc ";
-var iotclientIncs = "-I../../sdk/iothub_client/inc -I../../sdk/c-utility/inc -I../../sdk/umqtt/inc "
-    + "-I../../sdk/deps/parson ";
+var iotclientIncs = "-I../../sdk/iothub_client/inc -I../../sdk/c-utility/inc "
+    + "-I../../sdk/umqtt/inc -I../../sdk/deps/parson ";
 var serializerIncs = "-I../../sdk/serializer/inc -I../../sdk/c-utility/inc "
     + "-I../../sdk/iothub_client/inc -I../../sdk/deps/parson ";
 var umqttIncs = "-I../../sdk/umqtt/inc -I../../sdk/c-utility/inc ";
@@ -169,21 +173,16 @@ var provClientIncs = "-I../../sdk/provisioning_client/inc "
     + "-I../../sdk/umqtt/inc "
     + "-I../../sdk/deps/parson "
     + "-I../../sdk/deps/uhttp/inc ";
-var pthreadIncs = "";
-var useProv = "";
+var releases = new Array();
 
 /* Parse out the XDCARGS options for the include source paths */
 for (x = 0; x < xdcargs.length; x++) {
-    if (xdcargs[x].match(/^USE_PROV=/)) {
-        useProv = xdcargs[x].substring(xdcargs[x].indexOf('=') + 1);
-    }
-
     if (xdcargs[x].match(/^CC32XXSDK=/)) {
         incs = (xdcargs[x] + "").replace(/'/g, '');
         incs = incs.substring(incs.indexOf('=') + 1);
         if (incs != "\"\"") {
             incs += "/source";
-            slIncs = "-I" + incs + " -I" + incs + "/include -I" + incs
+            cc32xxIncs = "-I" + incs + " -I" + incs + "/include -I" + incs
                     + "/ti/net/bsd -I" + incs;
         }
     }
@@ -192,16 +191,20 @@ for (x = 0; x < xdcargs.length; x++) {
         incs = (xdcargs[x] + "").replace(/'/g, '');
         incs = incs.substring(incs.indexOf('=') + 1);
         if (incs != "\"\"") {
-            if (slIncs != "") {
-                throw("Error: Please fill in only one set of variables "
-                        + "in products.mak corresponding to your platform");
-            }
-
             incs += "/source";
-            slIncs = "-I" + incs + " -I" + incs + "/include -I" + incs
+            msp432Incs = "-I" + incs + " -I" + incs + "/include -I" + incs
                     + "/ti/net/bsd -I" + incs;
         }
     }
+}
+
+/* Device-specific package releases */
+for (var i = 0; i < devices.length; i++) {
+    var device = devices[i];
+
+    releases[device] = Pkg.addRelease(Pkg.name.replace(/\./g, '_') +
+            "," + device);
+    releases[device].attrs.label = device;
 }
 
 for (var i = 0; i < Build.targets.length; i++) {
@@ -211,18 +214,18 @@ for (var i = 0; i < Build.targets.length; i++) {
     var logOpts = "";
     var suppressOpts = "";
     var posixIncs;
-    var provClientOpts = "";
+    var provClientOpts = " -DUSE_PROV_MODULE ";
 
-    if (useProv != "\"true\"") {
-        provClientOpts = "";
-        provClientIncs = "";
+    if ((target.suffix == "em4") || (target.suffix == "rm4") ||
+            (target.suffix == "m4g")) {
+        slIncs = cc32xxIncs;
     }
-    else {
-        provClientOpts = " -DUSE_PROV_MODULE ";
+    else if ((target.suffix == "em4f") || (target.suffix == "rm4f") ||
+            (target.suffix == "m4fg")) {
+        slIncs = msp432Incs;
     }
 
     for (var profile in target.profiles) {
-        var defs = "";
         posixIncs = "/ti/posix" + "/" +
             getPosixIncDirectory(target.suffix) + " ";
         if (target.$name.split(".")[0] == "ti") {
@@ -250,36 +253,120 @@ for (var i = 0; i < Build.targets.length; i++) {
             logOpts = " -DNO_LOGGING ";
         }
 
-        extraOpts = provClientOpts + logOpts + suppressOpts + commonIncs + pthreadIncs;
-        Pkg.addLibrary(libdir + "/common_sl_" + profile,
-            target, {
-                profile: profile,
-                defs: "-DNET_SL -DREFCOUNT_ATOMIC_DONTCARE " + extraOpts,
-                incs: slIncs + posixIncs,
-                suffix: '.a'
-            }).addObjects(SRCS_C_UTIL);
+        extraOpts = logOpts + suppressOpts;
+        Pkg.addLibrary(libdir + "/common_sl_" + profile, target, {
+            profile: profile,
+            defs: "-DNET_SL -DREFCOUNT_ATOMIC_DONTCARE " + extraOpts,
+            incs: slIncs + posixIncs + commonIncs,
+            suffix: '.a'
+        }).addObjects(SRCS_C_UTIL);
 
-        extraOpts = provClientOpts + logOpts + suppressOpts + iotclientIncs + provClientIncs + pthreadIncs;
-        Pkg.addLibrary(libdir + "/iotclient_sl_" + profile, target, { profile: profile,
-            defs: "-DNET_SL -DREFCOUNT_ATOMIC_DONTCARE " + extraOpts, incs: slIncs + posixIncs, suffix: '.a'
+        extraOpts = provClientOpts + logOpts + suppressOpts;
+        Pkg.addLibrary(libdir + "/common_sl_prov_" + profile, target, {
+            profile: profile,
+            defs: "-DNET_SL -DREFCOUNT_ATOMIC_DONTCARE " + extraOpts,
+            incs: slIncs + posixIncs + commonIncs,
+            suffix: '.a'
+        }).addObjects(SRCS_C_UTIL);
+
+        extraOpts = logOpts + suppressOpts;
+        Pkg.addLibrary(libdir + "/iotclient_sl_" + profile, target, {
+            profile: profile,
+            defs: "-DNET_SL -DREFCOUNT_ATOMIC_DONTCARE " + extraOpts,
+            incs: slIncs + posixIncs + iotclientIncs,
+            suffix: '.a'
         }).addObjects(SRCS_IOTHUB_CLIENT);
 
-        extraOpts = provClientOpts + logOpts + suppressOpts + serializerIncs + pthreadIncs;
-        Pkg.addLibrary(libdir + "/serializer_sl_" + profile, target, { profile: profile,
-            defs: "-DNET_SL -DREFCOUNT_ATOMIC_DONTCARE " + extraOpts, incs: slIncs + posixIncs, suffix: '.a'
+        extraOpts = provClientOpts + logOpts + suppressOpts;
+        Pkg.addLibrary(libdir + "/iotclient_sl_prov_" + profile, target, {
+            profile: profile,
+            defs: "-DNET_SL -DREFCOUNT_ATOMIC_DONTCARE " + extraOpts,
+            incs: slIncs + posixIncs + iotclientIncs + provClientIncs,
+            suffix: '.a'
+        }).addObjects(SRCS_IOTHUB_CLIENT);
+
+        extraOpts = logOpts + suppressOpts;
+        Pkg.addLibrary(libdir + "/serializer_sl_" + profile, target, {
+            profile: profile,
+            defs: "-DNET_SL -DREFCOUNT_ATOMIC_DONTCARE " + extraOpts,
+            incs: slIncs + posixIncs + serializerIncs,
+            suffix: '.a'
         }).addObjects(SRCS_SERIALIZER);
 
-        extraOpts = provClientOpts + logOpts + suppressOpts + umqttIncs + pthreadIncs;
-        Pkg.addLibrary(libdir + "/umqtt_sl_" + profile, target, { profile: profile,
-            defs: "-DNET_SL -DREFCOUNT_ATOMIC_DONTCARE " + extraOpts, incs: slIncs + posixIncs, suffix: '.a'
+        extraOpts = provClientOpts + logOpts + suppressOpts;
+        Pkg.addLibrary(libdir + "/serializer_sl_prov_" + profile, target, {
+            profile: profile,
+            defs: "-DNET_SL -DREFCOUNT_ATOMIC_DONTCARE " + extraOpts,
+            incs: slIncs + posixIncs + serializerIncs,
+            suffix: '.a'
+        }).addObjects(SRCS_SERIALIZER);
+
+        extraOpts = logOpts + suppressOpts;
+        Pkg.addLibrary(libdir + "/umqtt_sl_" + profile, target, {
+            profile: profile,
+            defs: "-DNET_SL -DREFCOUNT_ATOMIC_DONTCARE " + extraOpts,
+            incs: slIncs + posixIncs + umqttIncs,
+            suffix: '.a'
         }).addObjects(SRCS_UMQTT);
 
-        if (useProv == "\"true\"") {
-            extraOpts = provClientOpts + logOpts + suppressOpts + provClientIncs + pthreadIncs;
-            Pkg.addLibrary(libdir + "/provisioning_client_sl_" + profile, target, { profile: profile,
-                defs: "-DNET_SL -DREFCOUNT_ATOMIC_DONTCARE -DHSM_TYPE_X509 " + extraOpts, incs: slIncs + posixIncs, suffix: '.a'
-            }).addObjects(SRCS_PROVISIONING_CLIENT);
+        extraOpts = provClientOpts + logOpts + suppressOpts;
+        Pkg.addLibrary(libdir + "/umqtt_sl_prov_" + profile, target, {
+            profile: profile,
+            defs: "-DNET_SL -DREFCOUNT_ATOMIC_DONTCARE " + extraOpts,
+            incs: slIncs + posixIncs + umqttIncs,
+            suffix: '.a'
+        }).addObjects(SRCS_UMQTT);
+
+        extraOpts = provClientOpts + logOpts + suppressOpts;
+        Pkg.addLibrary(libdir + "/provisioning_client_sl_" + profile, target, {
+            profile: profile,
+            defs: "-DNET_SL -DREFCOUNT_ATOMIC_DONTCARE -DHSM_TYPE_X509 " +
+                    extraOpts,
+            incs: slIncs + posixIncs + provClientIncs,
+            suffix: '.a'
+        }).addObjects(SRCS_PROVISIONING_CLIENT);
+
+        if ((target.suffix == "em4") || (target.suffix == "rm4") ||
+                (target.suffix == "m4g")) {
+            releases["cc32xx"].otherFiles.$add(libdir + "/common_sl_" +
+                    profile + ".a");
+            releases["cc32xx"].otherFiles.$add(libdir + "/common_sl_prov_" +
+                    profile + ".a");
+            releases["cc32xx"].otherFiles.$add(libdir + "/iotclient_sl_" +
+                    profile + ".a");
+            releases["cc32xx"].otherFiles.$add(libdir + "/iotclient_sl_prov_" +
+                    profile + ".a");
+            releases["cc32xx"].otherFiles.$add(libdir + "/serializer_sl_" +
+                    profile + ".a");
+            releases["cc32xx"].otherFiles.$add(libdir + "/serializer_sl_prov_" +
+                    profile + ".a");
+            releases["cc32xx"].otherFiles.$add(libdir + "/umqtt_sl_" + profile +
+                    ".a");
+            releases["cc32xx"].otherFiles.$add(libdir + "/umqtt_sl_prov_" +
+                    profile + ".a");
+            releases["cc32xx"].otherFiles.$add(libdir +
+                    "/provisioning_client_sl_" + profile + ".a");
+        }
+        else if ((target.suffix == "em4f") || (target.suffix == "rm4f") ||
+                (target.suffix == "m4fg")) {
+            releases["msp432e4"].otherFiles.$add(libdir + "/common_sl_" +
+                    profile + ".a");
+            releases["msp432e4"].otherFiles.$add(libdir + "/common_sl_prov_" +
+                    profile + ".a");
+            releases["msp432e4"].otherFiles.$add(libdir + "/iotclient_sl_" +
+                    profile + ".a");
+            releases["msp432e4"].otherFiles.$add(libdir +
+                    "/iotclient_sl_prov_" + profile + ".a");
+            releases["msp432e4"].otherFiles.$add(libdir + "/serializer_sl_" +
+                    profile + ".a");
+            releases["msp432e4"].otherFiles.$add(libdir +
+                    "/serializer_sl_prov_" + profile + ".a");
+            releases["msp432e4"].otherFiles.$add(libdir + "/umqtt_sl_" +
+                    profile + ".a");
+            releases["msp432e4"].otherFiles.$add(libdir + "/umqtt_sl_prov_" +
+                    profile + ".a");
+            releases["msp432e4"].otherFiles.$add(libdir +
+                    "/provisioning_client_sl_" + profile + ".a");
         }
     }
-
 }

@@ -22,7 +22,6 @@ XDCARGS= \
     CC32XXSDK=\"$(SIMPLELINK_CC32XX_SDK_INSTALL_DIR)\" \
     MSP432E4SDK=\"$(SIMPLELINK_MSP432E4_SDK_INSTALL_DIR)\" \
     BIOS=\"$(SIMPLELINK_CC32XX_SDK_INSTALL_DIR)/kernel/tirtos\" \
-    USE_PROV=\"$(use_prov_client)\" \
     ti.targets.arm.elf.M4=\"$(ti.targets.arm.elf.M4)\" \
     iar.targets.arm.M4=\"$(iar.targets.arm.M4)\" \
     gnu.targets.arm.M4=\"$(gnu.targets.arm.M4)\" \
@@ -48,7 +47,7 @@ export XDCPATH
 # Note that XDCBUILDCFG points to the .bld file which uses
 # the arguments specified by XDCARGS
 #
-XDC = $(XDC_INSTALL_DIR)/xdc $(JOBS) XDCARGS="$(XDCARGS)" XDCBUILDCFG=./azureiot.bld
+XDC = $(XDC_INSTALL_DIR)/xdc -j $(j) XDCARGS="$(XDCARGS)" XDCBUILDCFG=./azureiot.bld
 XS = $(XDC_INSTALL_DIR)/xs
 
 ######################################################

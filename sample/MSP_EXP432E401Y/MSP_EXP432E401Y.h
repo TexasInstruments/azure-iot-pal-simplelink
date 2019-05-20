@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, Texas Instruments Incorporated
+ * Copyright (c) 2017-2019, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -90,6 +90,15 @@ typedef enum MSP_EXP432E401Y_ADCBuf0ChannelName {
 } MSP_EXP432E401Y_ADCBuf0ChannelName;
 
 /*!
+ *  @def    MSP_EXP432E401Y_AESECBName
+ *  @brief  Enum of virtual AESECB instances on the MSP_EXP432E401Y dev board
+ */
+typedef enum MSP_EXP432E401Y_AESECBName {
+    MSP_EXP432E401Y_AESECB0 = 0,
+    MSP_EXP432E401Y_AESECBCOUNT
+} MSP_EXP432E401Y_AESECBName;
+
+/*!
  *  @def    MSP_EXP432E401Y_AESCBCName
  *  @brief  Enum of virtual AESCBC instances on the MSP_EXP432E401Y dev board
  */
@@ -125,6 +134,14 @@ typedef enum MSP_EXP432E401Y_AESGCMName {
     MSP_EXP432E401Y_AESGCMCOUNT
 } MSP_EXP432E401Y_AESGCMName;
 
+/*!
+ *  @def    MSP_EXP432E401Y_AESCTRDRBGName
+ *  @brief  Enum of virtual AESCTRDRBG instances on the MSP_EXP432E401Y dev board
+ */
+typedef enum MSP_EXP432E401Y_AESCTRDRBGName {
+    MSP_EXP432E401Y_AESCTRDRBG0 = 0,
+    MSP_EXP432E401Y_AESCTRDRBGCOUNT
+} MSP_EXP432E401Y_AESCTRDRBGName;
 
 /*!
  *  @def    MSP_EXP432E401Y_CANName
@@ -136,6 +153,15 @@ typedef enum MSP_EXP432E401Y_CANName {
 
     MSP_EXP432E401Y_CANCOUNT
 } MSP_EXP432E401Y_CANName;
+
+/*!
+ *  @def    MSP_EXP432E401Y_CRCName
+ *  @brief  Enum of CRC instances on the MSP_EXP432E401Y dev board
+ */
+typedef enum MSP_EXP432E401Y_CRCName {
+    MSP_EXP432E401Y_CRC0 = 0,
+    MSP_EXP432E401Y_CRCCOUNT
+} MSP_EXP432E401Y_CRCName;
 
 /*!
  *  @def    MSP_EXP432E401Y_GPIOName

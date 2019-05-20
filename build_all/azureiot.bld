@@ -75,6 +75,11 @@ var ccOpts = {
 var lnkOpts = {
 };
 
+var devices = [
+    "cc32xx",
+    "msp432e4",
+];
+
 /* initialize local vars with those set in products.mak (via XDCARGS) */
 for (arg = 0; arg < arguments.length; arg++) {
     /* split each arg into its '+' separated parts */

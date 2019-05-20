@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, Texas Instruments Incorporated
+ * Copyright (c) 2017-2019, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,10 +39,11 @@
 extern "C" {
 #endif
 
-#include "MSP_EXP432E401Y.h"
+#include <ti/drivers/Board.h>
 
-#define Board_init                  MSP_EXP432E401Y_initGeneral
-#define Board_initGeneral           MSP_EXP432E401Y_initGeneral
+#define Board_initGeneral()     Board_init()  /* deprecated */
+
+#include "MSP_EXP432E401Y.h"
 
 #define Board_ADC0                  MSP_EXP432E401Y_ADC0
 #define Board_ADC1                  MSP_EXP432E401Y_ADC1
@@ -56,6 +57,8 @@ extern "C" {
 
 #define Board_CAN0                  MSP_EXP432E401Y_CAN0
 #define Board_CAN1                  MSP_EXP432E401Y_CAN1
+
+#define Board_CRC0                  MSP_EXP432E401Y_CRC0
 
 #define Board_GPIO_LED_ON           MSP_EXP432E401Y_GPIO_LED_ON
 #define Board_GPIO_LED_OFF          MSP_EXP432E401Y_GPIO_LED_OFF
