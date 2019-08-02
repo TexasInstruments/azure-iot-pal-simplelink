@@ -21,12 +21,12 @@ This document describes how to connect a TI SimpleLink device to Microsoft Azure
 
 The instructions in this file apply specifically to a user who has directly cloned or downloaded the "azure-iot-pal-simplelink" PAL repository. Please note that it is highly recommended to alternatively install the [TI SimpleLink SDK Plugin for Microsoft Azure](http://www.ti.com/tool/SIMPLELINK-SDK-PLUGIN-FOR-AZUREIOT), versus cloning or downloading this repository directly.  The repository by itself only provides a basic example running on TI-RTOS with makefiles for the TI compiler.  Full support for TI, GCC and IAR toolchains and FreeRTOS is provided via the Plugin installation.
 
-If you have installed the Azure SDK Plugin (i.e. did not just clone/download this repository), then please refer to the Quick Start Guide that is included with your Plugin installation (you should be able to access this via the "docs" folder of the Azure SDK Plugin installation). The Quick Start Guide provides more accurate instructions that apply specifically to the Plugin installation.
+If you have installed the Plugin for Azure IoT (i.e. did not just clone/download this repository), then please refer to the Quick Start Guide that is included with your Plugin installation (you should be able to access this via the "docs" folder of the Plugin for Azure IoT installation). The Quick Start Guide provides more accurate instructions that apply specifically to the Plugin installation.
 
 <a name="Step-1-Prerequisites"></a>
 # Step 1: Prerequisites
 
-- Computer with Git client installed and access to [azure-iot-pal-simplelink](https://github.com/TexasInstruments/azure-iot-pal-simplelink), i.e. this BitBucket public repository.
+- Computer with Git client installed and access to [azure-iot-pal-simplelink](https://github.com/TexasInstruments/azure-iot-pal-simplelink), i.e. this public repository.
 - One of the following boards:
     - [CC3220SF LaunchPad](http://www.ti.com/tool/cc3220sf-launchxl)
     - [CC3220S LaunchPad](http://www.ti.com/tool/cc3220s-launchxl)
@@ -40,13 +40,13 @@ These instructions refer to the folder that contains the Azure PAL repository on
 
 While not strictly required, we recommend that you install the following tools from TI in the same directory and that you use directory names without any whitespace. This documentation assumes that you install everything in `C:\ti`.
 
-- Install [Code Composer Studio (CCS) IDE, v9.1 or compatible](http://processors.wiki.ti.com/index.php/Download_CCS)
+- Install [Code Composer Studio (CCS) IDE, v9.2 or compatible](http://processors.wiki.ti.com/index.php/Download_CCS)
 
-- Install [TI SimpleLink Wi-Fi CC32XX Software Development Kit 3.20 or compatible](http://www.ti.com/tool/simplelink-cc32xx-sdk) (for SimpleLink CC32XX only)
+- Install [TI SimpleLink Wi-Fi CC32XX Software Development Kit 3.30 or compatible](http://www.ti.com/tool/simplelink-cc32xx-sdk) (for SimpleLink CC32XX only)
 
-- Install [TI SimpleLink MSP432E4 Software Development Kit 3.20 or compatible](http://www.ti.com/tool/simplelink-msp432-sdk) (for SimpleLink MSP432E4 only)
+- Install [TI SimpleLink MSP432E4 Software Development Kit 3.30 or compatible](http://www.ti.com/tool/simplelink-msp432-sdk) (for SimpleLink MSP432E4 only)
 
-Please ensure that your device has been updated with the latest firmware and or service pack. Also ensure it uses a certificate catalog that contains the BaltiMore CyberTrust Root CA.
+Please ensure that your device has been updated with the latest firmware and or service pack. Also ensure it uses a certificate catalog that contains the Baltimore CyberTrust Root CA.
 (instructions for updating the firmware, service pack, and/or certificate catalog are included with the SimpleLink SDK installation if applicable).
 
 <a name="Step-2-Build"></a>
@@ -57,11 +57,11 @@ Please ensure that your device has been updated with the latest firmware and or 
 1. Edit the `products.mak` file in `<AZURE_PAL_INSTALL_DIR>\build_all` using your favorite text editor. The variables `XDC_INSTALL_DIR` and `SIMPLELINK_<YOUR DEVICE>_SDK_INSTALL_DIR` must point to the locations where you installed these products. The variable `ti.targets.arm.elf.M4` for CC32xx or `ti.targets.arm.elf.M4F` for MSP432E4 should point to the installation location of the TI ARM compiler, which can be found in CCS. After modification, these variable definitions should look similar to the following. Note the use of "/" in the path.
 
   ```
-  XDC_INSTALL_DIR ?= c:/ti/xdctools_3_51_03_28_core
-  SIMPLELINK_CC32XX_SDK_INSTALL_DIR   ?= C:/ti/simplelink_cc32xx_sdk_3_20_00_06
-  ti.targets.arm.elf.M4  ?= C:/ti/ccs910/ccs/tools/compiler/ti-cgt-arm_18.12.2.LTS
+  XDC_INSTALL_DIR ?= c:/ti/xdctools_3_60_00_24_core
+  SIMPLELINK_CC32XX_SDK_INSTALL_DIR   ?= c:/ti/simplelink_cc32xx_sdk_3_30_00_04
+  ti.targets.arm.elf.M4  ?= c:/ti/ccs920/ccs/tools/compiler/ti-cgt-arm_18.12.3.LTS
   ```
-It is also recommended that you add the xdc tools folder (```C:/ti/xdctools_3_51_03_28_core```) to your path in order to avoid errors related to finding `gmake.exe` during the build process.
+It is also recommended that you add the xdc tools folder (```C:/ti/xdctools_3_60_00_24_core```) to your path in order to avoid errors related to finding `gmake.exe` during the build process.
 
 2. Open a Windows command prompt.
 
@@ -69,8 +69,8 @@ It is also recommended that you add the xdc tools folder (```C:/ti/xdctools_3_51
 
   ```
   cd <AZURE_PAL_INSTALL_DIR>\build_all
-  C:\ti\xdctools_3_51_03_28_core\gmake.exe clean
-  C:\ti\xdctools_3_51_03_28_core\gmake.exe all
+  C:\ti\xdctools_3_60_00_24_core\gmake.exe clean
+  C:\ti\xdctools_3_60_00_24_core\gmake.exe all
   ```
 
 <a name="Build-OS"></a>
@@ -82,8 +82,8 @@ It is also recommended that you add the xdc tools folder (```C:/ti/xdctools_3_51
 3. In the Windows command prompt, enter the following commands to build the OS:
 
   ```
-  C:\ti\xdctools_3_51_03_28_core\gmake.exe clean
-  C:\ti\xdctools_3_51_03_28_core\gmake.exe
+  C:\ti\xdctools_3_60_00_24_core\gmake.exe clean
+  C:\ti\xdctools_3_60_00_24_core\gmake.exe
   ```
 
 <a name="Build-SAMPLE"></a>
@@ -99,25 +99,25 @@ Before building the application, complete the following steps:
 
   ```
   cd <AZURE_PAL_INSTALL_DIR>\sample\CC3220SF_LAUNCHXL\tirtos\ccs
-  C:\ti\xdctools_3_51_03_28_core\gmake.exe clean
-  C:\ti\xdctools_3_51_03_28_core\gmake.exe all
+  C:\ti\xdctools_3_60_00_24_core\gmake.exe clean
+  C:\ti\xdctools_3_60_00_24_core\gmake.exe all
   ```
 
 <a name="Flash-SAMPLE"></a>
 ## Flash the root certificate
 ### For CC32xx devices
 
-> Note: In the sample applications, the root CA certificate - "Baltimore CyberTrust Root" is flashed to CC32XX LaunchPad to the location `/cert/ms.pem`. This location must match `SL_SSL_CA_CERT` in `<AZURE_PAL_INSTALL_DIR>\pal\inc\cert_sl.h`, and is used by SimpleLink TLS stack.
+> Note: In the sample applications, the root CA certificate - "Baltimore CyberTrust Root" is flashed to the location `/cert/ms.pem`. This location must match `SL_SSL_CA_CERT` in `<AZURE_PAL_INSTALL_DIR>\pal\inc\cert_sl.h`, and is used by the SimpleLink TLS stack.
 
-Here's why you need the Baltimore root CA - it's the root CA for `*.azure-devices.net`, the IoT Hub endpoint and it's the only way for the device to verify the chain of trust:
-
-![image](https://cloud.githubusercontent.com/assets/6472374/11576321/71207be4-9a1e-11e5-9332-fa99fdbd31f9.png)
+The Baltimore root CA certificate is needed as it's the root CA for `*.azure-devices.net`, the IoT Hub endpoint, and it's the only way for the device to verify the chain of trust.
 
 The default behavior of the sample application is to automatically write the certificate to flash if it does not exist. This prevents the file from being written unnecessarily to the file system each time the program is run. If you wish to override this behavior, or if you wish to use a new certificate file, you can force the certificate to be flashed by passing "-DOVERWRITE_CERTS" to the compiler in the makefile.
 
 ### For MSP432E4 devices
 
-The root CA certificate is simply loaded into memory as a security object with the name `/cert/ms.pem` to match `SL_SSL_CA_CERT` in `<AZURE_PAL_INSTALL_DIR>\pal\inc\cert_sl.h`, and used later when connecting to the IoT Hub endpoint.
+> Note: In the sample applications, the root CA certificate - "Baltimore CyberTrust Root" is loaded into into an object named `/cert/ms.pem`. This location must match `SL_SSL_CA_CERT` in `<AZURE_PAL_INSTALL_DIR>\pal\inc\cert_sl.h`, and is used later when connecting to the IoT Hub endpoint.
+
+The Baltimore root CA certificate is needed as it's the root CA for `*.azure-devices.net`, the IoT Hub endpoint, and it's the only way for the device to verify the chain of trust.
 
 <a name="Setup-CCS"></a>
 ## Setting Up Code Composer Studio Before Running The Examples

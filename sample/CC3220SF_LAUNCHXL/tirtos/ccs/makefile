@@ -1,5 +1,5 @@
 #
-#  Copyright (c) 2017-2018, Texas Instruments Incorporated
+#  Copyright (c) 2017-2019, Texas Instruments Incorporated
 #  All rights reserved.
 #
 #  Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,13 @@ TREE_ROOT = ../../../..
 include $(TREE_ROOT)/build_all/products.mak
 include makedefs
 
-CFLAGS :=  -I../.. -I../../.. -I$(TREE_ROOT)/sdk/inc/ -I$(TREE_ROOT)/sdk/certs/ -I$(TREE_ROOT)/sdk/c-utility/inc/ -I$(TREE_ROOT)/sdk/c-utility/inc/azure_c_shared_utility -I$(TREE_ROOT)/sdk/iothub_client/inc -I$(TREE_ROOT)/sdk/serializer/inc -g $(CFLAGS) --cmd_file=$(CONFIGPKG)/compiler.opt
+CFLAGS :=  -I. -I../.. -I../../.. -I$(TREE_ROOT)/sdk/inc/ \
+    -I$(TREE_ROOT)/sdk/certs/ -I$(TREE_ROOT)/sdk/c-utility/inc/ \
+    -I$(TREE_ROOT)/sdk/c-utility/deps/azure-macro-utils-c/inc \
+    -I$(TREE_ROOT)/sdk/c-utility/deps/umock-c/inc \
+    -I$(TREE_ROOT)/sdk/c-utility/inc/azure_c_shared_utility \
+    -I$(TREE_ROOT)/sdk/iothub_client/inc -I$(TREE_ROOT)/sdk/serializer/inc \
+    -g $(CFLAGS) --cmd_file=$(CONFIGPKG)/compiler.opt
 
 LIBS =  $(TREE_ROOT)/build_all/sdk/lib/ccs/m4/common_sl_release.a \
     $(TREE_ROOT)/build_all/sdk/lib/ccs/m4/iotclient_sl_release.a \
@@ -45,7 +51,7 @@ VPATH = ..:../..:../../..:$(TREE_ROOT)/certs
 
 %.o : %.c
 
-%.o : %.c $(CONFIGPKG)/compiler.opt
+%.o : %.c ti_drivers_config.h $(CONFIGPKG)/compiler.opt
 	@echo $(CC) $(CFLAGS) -c $<
 	@$(CC) $(CFLAGS) -c $<
 
@@ -57,11 +63,20 @@ $(CONFIGPKG)/linker.cmd $(CONFIGPKG)/compiler.opt:
             $(MAKE) in $(CONFIGPKG).")
 	@ echo
 
-simplesample_http.out: main_tirtos.o certs.o startsntp.o simplesample_http.o network.o CC3220SF_LAUNCHXL.o CC3220SF_LAUNCHXL_TIRTOS.cmd $(CONFIGPKG)/linker.cmd $(LIBS)
+.INTERMEDIATE: syscfg
+ti_drivers_config.c ti_net_config.c ti_drivers_net_wifi_config.c ti_drivers_config.h: syscfg
+	@ echo generation complete
+
+syscfg: ../azure_iot.syscfg
+	@ echo Generating configuration files...
+	@ $(SYSCONFIG_TOOL) --product $(SIMPLELINK_CC32XX_SDK_INSTALL_DIR)/.metadata/product.json --board /ti/boards/CC3220SF_LAUNCHXL --output $(@D) $<
+
+simplesample_http.out: ti_drivers_config.o ti_net_config.o ti_drivers_net_wifi_config.o main_tirtos.o certs.o startsntp.o simplesample_http.o network.o CC3220SF_LAUNCHXL_TIRTOS.cmd $(CONFIGPKG)/linker.cmd $(LIBS)
 	@echo building $@ ..
 	@$(LD) -o $@ $^ -x -m $@.map $(LFLAGS)
 
 clean:
 	@echo cleaning ..
-	@ $(RM) *.o *.out *.map
+	@ $(RM) *.o *.out *.map *.rov.xs
+	@ $(RM) ti_drivers_config.c ti_net_config.c ti_drivers_net_wifi_config.c ti_drivers_config.h
 	@ $(RMDIR)

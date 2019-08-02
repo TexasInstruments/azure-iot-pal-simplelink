@@ -55,8 +55,8 @@ Pkg.generatedFiles.$add("lib/");
 
 var SRCS_C_UTIL = [
     "agenttime.c",
-    "base32.c",
-    "base64.c",
+    "azure_base32.c",
+    "azure_base64.c",
     "buffer.c",
     "consolelogger.c",
     "constbuffer.c",
@@ -160,19 +160,30 @@ var slIncs = "";
 var incs = "";
 var cc32xxIncs = "";
 var msp432Incs = "";
-var commonIncs = "-I../../pal/inc -I../../sdk/c-utility/inc ";
-var iotclientIncs = "-I../../sdk/iothub_client/inc -I../../sdk/c-utility/inc "
-    + "-I../../sdk/umqtt/inc -I../../sdk/deps/parson ";
-var serializerIncs = "-I../../sdk/serializer/inc -I../../sdk/c-utility/inc "
-    + "-I../../sdk/iothub_client/inc -I../../sdk/deps/parson ";
-var umqttIncs = "-I../../sdk/umqtt/inc -I../../sdk/c-utility/inc ";
-var provClientIncs = "-I../../sdk/provisioning_client/inc "
-    + "-I../../sdk/provisioning_client/deps/utpm/deps/c-utility/inc "
-    + "-I../../sdk/provisioning_client/adapters "
-    + "-I../../sdk/uamqp/inc "
-    + "-I../../sdk/umqtt/inc "
-    + "-I../../sdk/deps/parson "
-    + "-I../../sdk/deps/uhttp/inc ";
+var commonIncs = "-I../../pal/inc -I../../sdk/c-utility/inc " +
+    "-I../../sdk/c-utility/deps/azure-macro-utils-c/inc " +
+    "-I../../sdk/c-utility/deps/umock-c/inc ";
+var iotclientIncs = "-I../../sdk/iothub_client/inc " +
+    "-I../../sdk/c-utility/inc " +
+    "-I../../sdk/c-utility/deps/azure-macro-utils-c/inc " +
+    "-I../../sdk/c-utility/deps/umock-c/inc " +
+    "-I../../sdk/umqtt/inc -I../../sdk/deps/parson ";
+var serializerIncs = "-I../../sdk/serializer/inc -I../../sdk/c-utility/inc " +
+    "-I../../sdk/c-utility/deps/azure-macro-utils-c/inc " +
+    "-I../../sdk/c-utility/deps/umock-c/inc " +
+    "-I../../sdk/iothub_client/inc -I../../sdk/deps/parson ";
+var umqttIncs = "-I../../sdk/umqtt/inc -I../../sdk/c-utility/inc " +
+    "-I../../sdk/c-utility/deps/azure-macro-utils-c/inc " +
+    "-I../../sdk/c-utility/deps/umock-c/inc ";
+var provClientIncs = "-I../../sdk/provisioning_client/inc " +
+    "-I../../sdk/c-utility/inc " +
+    "-I../../sdk/c-utility/deps/azure-macro-utils-c/inc " +
+    "-I../../sdk/c-utility/deps/umock-c/inc " +
+    "-I../../sdk/provisioning_client/adapters " +
+    "-I../../sdk/uamqp/inc " +
+    "-I../../sdk/umqtt/inc " +
+    "-I../../sdk/deps/parson " +
+    "-I../../sdk/deps/uhttp/inc ";
 var releases = new Array();
 
 /* Parse out the XDCARGS options for the include source paths */

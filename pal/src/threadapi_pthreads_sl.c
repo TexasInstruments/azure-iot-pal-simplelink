@@ -13,7 +13,7 @@
 #include <time.h>
 #include "azure_c_shared_utility/xlogging.h"
 
-DEFINE_ENUM_STRINGS(THREADAPI_RESULT, THREADAPI_RESULT_VALUES);
+MU_DEFINE_ENUM_STRINGS(THREADAPI_RESULT, THREADAPI_RESULT_VALUES);
 
 typedef struct THREAD_INSTANCE_TAG
 {
@@ -37,7 +37,7 @@ THREADAPI_RESULT ThreadAPI_Create(THREAD_HANDLE* threadHandle, THREAD_START_FUNC
         (func == NULL))
     {
         result = THREADAPI_INVALID_ARG;
-        LogError("(result = %s)", ENUM_TO_STRING(THREADAPI_RESULT, result));
+        LogError("(result = %s)", MU_ENUM_TO_STRING(THREADAPI_RESULT, result));
     }
     else
     {
@@ -45,7 +45,7 @@ THREADAPI_RESULT ThreadAPI_Create(THREAD_HANDLE* threadHandle, THREAD_START_FUNC
         if (threadInstance == NULL)
         {
             result = THREADAPI_NO_MEMORY;
-            LogError("(result = %s)", ENUM_TO_STRING(THREADAPI_RESULT, result));
+            LogError("(result = %s)", MU_ENUM_TO_STRING(THREADAPI_RESULT, result));
         }
         else
         {
@@ -58,7 +58,7 @@ THREADAPI_RESULT ThreadAPI_Create(THREAD_HANDLE* threadHandle, THREAD_START_FUNC
                 free(threadInstance);
 
                 result = THREADAPI_ERROR;
-                LogError("(result = %s)", ENUM_TO_STRING(THREADAPI_RESULT, result));
+                LogError("(result = %s)", MU_ENUM_TO_STRING(THREADAPI_RESULT, result));
                 break;
 
             case 0:
@@ -70,7 +70,7 @@ THREADAPI_RESULT ThreadAPI_Create(THREAD_HANDLE* threadHandle, THREAD_START_FUNC
                 free(threadInstance);
 
                 result = THREADAPI_NO_MEMORY;
-                LogError("(result = %s)", ENUM_TO_STRING(THREADAPI_RESULT, result));
+                LogError("(result = %s)", MU_ENUM_TO_STRING(THREADAPI_RESULT, result));
                 break;
             }
         }
@@ -87,7 +87,7 @@ THREADAPI_RESULT ThreadAPI_Join(THREAD_HANDLE threadHandle, int* res)
     if (threadInstance == NULL)
     {
         result = THREADAPI_INVALID_ARG;
-        LogError("(result = %s)", ENUM_TO_STRING(THREADAPI_RESULT, result));
+        LogError("(result = %s)", MU_ENUM_TO_STRING(THREADAPI_RESULT, result));
     }
     else
     {
@@ -95,7 +95,7 @@ THREADAPI_RESULT ThreadAPI_Join(THREAD_HANDLE threadHandle, int* res)
         if (pthread_join(threadInstance->Pthread_handle, &threadResult) != 0)
         {
             result = THREADAPI_ERROR;
-            LogError("(result = %s)", ENUM_TO_STRING(THREADAPI_RESULT, result));
+            LogError("(result = %s)", MU_ENUM_TO_STRING(THREADAPI_RESULT, result));
         }
         else
         {
@@ -123,5 +123,5 @@ void ThreadAPI_Sleep(unsigned int milliseconds)
     time_t seconds = milliseconds / 1000;
     long nsRemainder = (milliseconds % 1000) * 1000000;
     struct timespec timeToSleep = { seconds, nsRemainder };
-    clock_nanosleep(CLOCK_MONOTONIC, 0, &timeToSleep, NULL);
+    (void)nanosleep(&timeToSleep, NULL);
 }

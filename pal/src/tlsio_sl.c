@@ -282,7 +282,7 @@ int tlsio_sl_open(CONCRETE_IO_HANDLE tls_io,
 
     if (tls_io == NULL) {
         LogError("NULL tls_io");
-        result = __FAILURE__;
+        result = MU_FAILURE;
         return (result);
     }
     else {
@@ -290,7 +290,7 @@ int tlsio_sl_open(CONCRETE_IO_HANDLE tls_io,
 
         if (instance->tlsio_state != TLSIO_STATE_NOT_OPEN) {
             LogError("IO should not be open: %d\n", instance->tlsio_state);
-            result =  __FAILURE__;
+            result =  MU_FAILURE;
             return (result);
         }
         else {
@@ -373,7 +373,7 @@ int tlsio_sl_open(CONCRETE_IO_HANDLE tls_io,
                 goto cleanup;
             }
 
-            IO_OPEN_RESULT oresult = result == __FAILURE__ ? IO_OPEN_ERROR :
+            IO_OPEN_RESULT oresult = result == MU_FAILURE ? IO_OPEN_ERROR :
                                                              IO_OPEN_OK;
             instance->tlsio_state = TLSIO_STATE_OPEN;
             instance->on_io_open_complete(instance->on_io_open_complete_context,
@@ -390,7 +390,7 @@ cleanup:
 
     if (error) {
         instance->tlsio_state = TLSIO_STATE_NOT_OPEN;
-        result = __FAILURE__;
+        result = MU_FAILURE;
         if (instance->sock >= 0) {
             close(instance->sock);
         }
@@ -407,7 +407,7 @@ int tlsio_sl_close(CONCRETE_IO_HANDLE tls_io,
 
     if (tls_io == NULL) {
         LogError("NULL tls_io");
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else {
         TLS_IO_INSTANCE* instance = (TLS_IO_INSTANCE*)tls_io;
@@ -415,7 +415,7 @@ int tlsio_sl_close(CONCRETE_IO_HANDLE tls_io,
         if ((instance->tlsio_state == TLSIO_STATE_NOT_OPEN) ||
             (instance->tlsio_state == TLSIO_STATE_CLOSING)) {
             LogError("Invalid state in tlsio_sl_close");
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else {
             instance->tlsio_state = TLSIO_STATE_CLOSING;
@@ -440,14 +440,14 @@ int tlsio_sl_send(CONCRETE_IO_HANDLE tls_io, const void* buffer, size_t size,
 
     if (tls_io == NULL) {
         LogError("NULL tls_io");
-        result = __FAILURE__;
+        result = MU_FAILURE;
     }
     else {
         TLS_IO_INSTANCE* instance = (TLS_IO_INSTANCE*)tls_io;
 
         if (instance->tlsio_state != TLSIO_STATE_OPEN) {
             LogError("Invalid state in tlsio_sl_send");
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else {
             const char* buf = (const char*)buffer;
@@ -458,7 +458,7 @@ int tlsio_sl_send(CONCRETE_IO_HANDLE tls_io, const void* buffer, size_t size,
             while (size) {
                 int res = send(instance->sock, buf, size, 0);
                 if ((res < 0) && (errno != EAGAIN)) {
-                    result = __FAILURE__;
+                    result = MU_FAILURE;
                     break;
                 }
                 else if (((res < 0) && (errno == EAGAIN)) || (res < size)) {
@@ -472,7 +472,7 @@ int tlsio_sl_send(CONCRETE_IO_HANDLE tls_io, const void* buffer, size_t size,
                     buf += res;
                 }
             }
-            IO_SEND_RESULT oresult = result == __FAILURE__ ? IO_SEND_ERROR :
+            IO_SEND_RESULT oresult = result == MU_FAILURE ? IO_SEND_ERROR :
                                                              IO_SEND_OK;
             instance->on_send_complete(
                           instance->on_send_complete_callback_context, oresult);
@@ -529,14 +529,14 @@ int tlsio_sl_setoption(CONCRETE_IO_HANDLE tls_io, const char* optionName,
            (strcmp(SU_OPTION_X509_CERT, optionName) == 0)) {
         if (tls_io_instance->x509_certificate != NULL) {
             LogError("unable to set x509 options more than once");
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else {
             /* let's make a persistent copy of this option */
             if (mallocAndStrcpy_s((char**)&tls_io_instance->x509_certificate,
                     value) != 0) {
                 LogError("unable to mallocAndStrcpy_s %s", optionName);
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
         }
 
@@ -549,14 +549,14 @@ int tlsio_sl_setoption(CONCRETE_IO_HANDLE tls_io, const char* optionName,
             (strcmp(SU_OPTION_X509_PRIVATE_KEY, optionName) == 0)) {
         if (tls_io_instance->x509_private_key != NULL) {
             LogError("unable to set more than once x509 options");
-            result = __FAILURE__;
+            result = MU_FAILURE;
         }
         else {
             /* let's make a persistent copy of this option */
             if (mallocAndStrcpy_s((char**)&tls_io_instance->x509_private_key,
                     value) != 0) {
                 LogError("unable to mallocAndStrcpy_s %s", optionName);
-                result = __FAILURE__;
+                result = MU_FAILURE;
             }
         }
 

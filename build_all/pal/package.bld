@@ -61,7 +61,10 @@ var slIncs = "";
 var incs = "";
 var cc32xxIncs = "";
 var msp432Incs = "";
-var palIncs = "-I../../pal/inc -I../../sdk/c-utility/inc -I../../sdk/deps/parson ";
+var palIncs = "-I../../pal/inc -I../../sdk/c-utility/inc " +
+    "-I../../sdk/c-utility/deps/azure-macro-utils-c/inc " +
+    "-I../../sdk/c-utility/deps/umock-c/inc " +
+    "-I../../sdk/deps/parson ";
 var releases = new Array();
 
 /* Parse out the XDCARGS options for the include source paths */
@@ -99,7 +102,7 @@ for (var i = 0; i < devices.length; i++) {
 for (var i = 0; i < Build.targets.length; i++) {
     var target = Build.targets[i];
     var libdir = getLibDirectory(target.suffix);
-    var extraOpts;
+    var extraOpts = "";
     var posixIncs;
 
     if ((target.suffix == "em4") || (target.suffix == "rm4") ||
@@ -115,18 +118,17 @@ for (var i = 0; i < Build.targets.length; i++) {
         posixIncs = "/ti/posix" + "/" +
             getPosixIncDirectory(target.suffix) + " ";
 
-        extraOpts = palIncs;
         /* Add back unused warnings in PAL */
         if (target.$name.split(".")[0] == "gnu") {
-            extraOpts += " -Wunused ";
+            extraOpts += "-Wunused ";
         }
         if (profile == "release") {
-            extraOpts += " -DNO_LOGGING ";
+            extraOpts += "-DNO_LOGGING ";
         }
         Pkg.addLibrary(libdir + "/pal_sl_" + profile, target, {
             profile: profile,
             defs: "-DNET_SL -DREFCOUNT_ATOMIC_DONTCARE " + extraOpts,
-            incs: slIncs + posixIncs,
+            incs: slIncs + posixIncs + palIncs,
             suffix: '.a'
         }).addObjects(SRCS_PAL);
 

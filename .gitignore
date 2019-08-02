@@ -40,6 +40,13 @@ TAGS
 *.map
 *.xml
 
+# syscfg generated files
+*.rov.xs
+ti_drivers_config*
+ti_drivers_net_wifi_config.c
+ti_net_config.c
+ti_ndk_config.c
+
 # klocwork-generated directory and files
 kw-test/
 kwout.txt

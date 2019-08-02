@@ -37,6 +37,8 @@
 #include <ti/sysbios/BIOS.h>
 #include <ti/sysbios/knl/Task.h>
 
+/* Driver configuration */
+#include <ti/drivers/Board.h>
 #include <ti/drivers/GPIO.h>
 
 #include <pthread.h>
@@ -47,7 +49,7 @@
 #include <ti/net/slnetsock.h>
 #include <ti/net/slnetif.h>
 
-#include "Board.h"
+#include "ti_drivers_config.h"
 #include "certs.h"
 #include "network.h"
 

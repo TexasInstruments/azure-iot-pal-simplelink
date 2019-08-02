@@ -36,6 +36,8 @@
 
 #include <ti/sysbios/BIOS.h>
 
+/* Driver configuration */
+#include <ti/drivers/Board.h>
 #include <ti/drivers/GPIO.h>
 #include <ti/drivers/SPI.h>
 
@@ -48,7 +50,7 @@
 #include <ti/net/slnetsock.h>
 #include <ti/net/slnetif.h>
 
-#include "Board.h"
+#include "ti_drivers_config.h"
 #include "certs.h"
 #include "network.h"
 
@@ -168,7 +170,11 @@ int main(int argc, char *argv[])
     SPI_init();
     Network_init();
 
-    GPIO_write(Board_GPIO_LED0, Board_GPIO_LED_ON);
+    /* Configure the LED and button pins */
+    GPIO_setConfig(CONFIG_GPIO_LED_0, GPIO_CFG_OUT_STD | GPIO_CFG_OUT_LOW);
+    GPIO_setConfig(CONFIG_GPIO_BUTTON_0, GPIO_CFG_IN_PU | GPIO_CFG_IN_INT_FALLING);
+    /* Turn on user LED */
+    GPIO_write(CONFIG_GPIO_LED_0, CONFIG_GPIO_LED_ON);
 
     /* Create the sl_Task thread */
     pthread_attr_init(&pthreadAttrs);

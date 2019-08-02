@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, Texas Instruments Incorporated
+ * Copyright (c) 2017-2019, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,32 +31,28 @@
  */
 
 #include <stdbool.h>
+#include <stdint.h>
 
-#include <ti/net/slnetsock.h>
-#include <ti/net/slnetif.h>
-#include <ti/net/slnetutils.h>
+#include <ti/net/slnet.h>
 
 #include <ti/drivers/GPIO.h>
 
 #include <ti/drivers/net/wifi/netapp.h>
 #include <ti/drivers/net/wifi/simplelink.h>
-#include <ti/drivers/net/wifi/slnetifwifi.h>
 #include <ti/drivers/net/wifi/wlan.h>
 
 #include <semaphore.h>
 #include <unistd.h>
 
-#include "Board.h"
+#include "ti_drivers_config.h"
 #include "wificonfig.h"
 
-/* Network interface priority and name */
-#define SLNET_IF_WIFI_PRIO (5)
-#define SLNET_IF_WIFI_NAME "CC32XX"
+/* Provisioning inactivity timeout in seconds */
+#define PROV_INACTIVITY_TIMEOUT (600)
 
 static uint32_t deviceConnected = false;
 static uint32_t ipAcquired = false;
-static uint32_t currButton;
-static uint32_t prevButton;
+static uint32_t provisioning = false;
 
 static sem_t sem;
 
@@ -88,40 +84,20 @@ void Network_startup()
     /* Wait for the network stack to initialize and acquire an IP address */
     sem_wait(&sem);
 
-    /* The network stack is ready. Initialize the socket layer */
-    status = SlNetSock_init(0);
-    if (status != 0) {
-        /* SlNetSock_init failed */
-        while (1);
-    }
-
-    status = SlNetIf_init(0);
-    if (status != 0) {
-        /* SlNetIf_init failed */
-        while (1);
-    }
-
-    status = SlNetUtil_init(0);
-    if (status != 0) {
-        /* SlNetUtil_init failed */
-        while (1);
-    }
-
-    /* Register the WiFi interface with the socket layer */
-    status = SlNetIf_add(SLNETIF_ID_1, SLNET_IF_WIFI_NAME,
-            (const SlNetIf_Config_t *)&SlNetIfConfigWifi, SLNET_IF_WIFI_PRIO);
-    if (status != 0) {
-        /* SlNetIf_add failed */
+    /* initialize SlNet interface(s) */
+    status = ti_net_SlNet_initConfig();
+    if (status < 0) {
+        /* ti_net_SlNet_initConfig failed */
         while (1);
     }
 
     /* Turn LED OFF. It will be used as a connection indicator */
-    GPIO_write(Board_GPIO_LED0, Board_GPIO_LED_OFF);
+    GPIO_write(CONFIG_GPIO_LED_0, CONFIG_GPIO_LED_OFF);
 
     /* Use SNTP to get the current time, as needed for SSL authentication */
     startSNTP();
 
-    GPIO_write(Board_GPIO_LED0, Board_GPIO_LED_ON);
+    GPIO_write(CONFIG_GPIO_LED_0, CONFIG_GPIO_LED_ON);
 }
 
 /*
@@ -166,9 +142,9 @@ void SimpleLinkNetAppRequestMemFreeEventHandler(uint8_t *buffer)
  *  SimpleLink Host Driver callback for handling WLAN connection or
  *  disconnection events.
  */
-void SimpleLinkWlanEventHandler(SlWlanEvent_t *pArgs)
+void SimpleLinkWlanEventHandler(SlWlanEvent_t *pWlanEvent)
 {
-    switch (pArgs->Id) {
+    switch (pWlanEvent->Id) {
         case SL_WLAN_EVENT_CONNECT:
             deviceConnected = true;
             break;
@@ -177,6 +153,31 @@ void SimpleLinkWlanEventHandler(SlWlanEvent_t *pArgs)
             deviceConnected = false;
             break;
 
+        case SL_WLAN_EVENT_PROVISIONING_STATUS:
+            switch (pWlanEvent->Data.ProvisioningStatus.ProvisioningStatus) {
+                case SL_WLAN_PROVISIONING_CONFIRMATION_WLAN_CONNECT:
+                    deviceConnected = true;
+                    break;
+
+                case SL_WLAN_PROVISIONING_CONFIRMATION_IP_ACQUIRED:
+                    ipAcquired = true;
+                    break;
+
+                case SL_WLAN_PROVISIONING_STOPPED:
+                    if (pWlanEvent->Data.ProvisioningStatus.Role == ROLE_STA) {
+                        if (pWlanEvent->Data.ProvisioningStatus.WlanStatus ==
+                                SL_WLAN_STATUS_CONNECTED) {
+                            /* The WiFi stack is ready and has an IP address */
+                            provisioning = false;
+                            sem_post(&sem);
+                        }
+                    }
+
+                    break;
+
+                default:
+                    break;
+            }
         default:
             break;
     }
@@ -259,73 +260,36 @@ void SimpleLinkGeneralEventHandler(SlDeviceEvent_t *sockEvent)
 }
 
 /*
- *  ======== smartConfigFxn ========
+ *  ======== provisioningFxn ========
  */
-void smartConfigFxn()
+void provisioningFxn()
 {
-    uint8_t policyVal;
+    int32_t status;
 
-    /* Set auto connect policy */
-    sl_WlanPolicySet(SL_WLAN_POLICY_CONNECTION,
-            SL_WLAN_CONNECTION_POLICY(1, 0, 0, 0), &policyVal,
-            sizeof(policyVal));
+    sl_NetAppStart(SL_NETAPP_HTTP_SERVER_ID);
 
-    /* Start SmartConfig using unsecured method. */
-    sl_WlanProvisioning(SL_WLAN_PROVISIONING_CMD_START_MODE_SC, ROLE_STA, 30,
-            NULL, 0);
-}
+    sl_WlanSetMode(ROLE_AP);
 
-/*
- *  ======== setStationMode ========
- *  Sets the SimpleLink Wi-Fi in station mode and enables DHCP client
- */
-void setStationMode(void)
-{
-    int           mode;
-    int           response;
-
-    mode = sl_Start(0, 0, 0);
-    if (mode < 0) {
-        /* sl_Start error: Could not initialize SimpleLink Wi-Fi */
+    /* Restart network processor */
+    sl_Stop(200);
+    status = sl_Start(0, 0, 0);
+    if (status < 0) {
+        /* Error: Failed to set SimpleLink Wi-Fi to AP mode */
         while(1);
     }
-
-    /* Change network processor to station mode */
-    if (mode != ROLE_STA) {
-        sl_WlanSetMode(ROLE_STA);
-
-        /* Restart network processor */
-        sl_Stop(200);
-        mode = sl_Start(0, 0, 0);
-        if (mode < 0) {
-            /* Error: Failed to set SimpleLink Wi-Fi to Station mode */
-            while(1);
-        }
-    }
-
-    sl_WlanDisconnect();
-    /* Set auto connect policy */
-    response = sl_WlanPolicySet(SL_WLAN_POLICY_CONNECTION,
-            SL_WLAN_CONNECTION_POLICY(1, 0, 0, 0), NULL, 0);
-    if (response < 0) {
-        /* Error: Failed to set connection policy to auto connect */
-        while (1);
-    }
-
-    /* Enable DHCP client */
-    response = sl_NetCfgSet(SL_NETCFG_IPV4_STA_ADDR_MODE, SL_NETCFG_ADDR_DHCP,
-            0, 0);
-
-    if (response < 0) {
-        /* Error: Could not enable DHCP client */
-        while (1);
-    }
-
-    sl_Stop(200);
 
     /* Set connection variables to initial values */
     deviceConnected = false;
     ipAcquired = false;
+    provisioning = true;
+
+    /* Start AP+Smart Config provisioning */
+    status = sl_WlanProvisioning(SL_WLAN_PROVISIONING_CMD_START_MODE_APSC,
+            ROLE_STA, PROV_INACTIVITY_TIMEOUT, NULL, 0);
+    if (status < 0) {
+        /* Error: Failed to start provisioning */
+        while(1);
+    }
 }
 
 /*
@@ -337,12 +301,14 @@ static int wlanConnect()
     SlWlanSecParams_t secParams = {0};
     int ret = 0;
 
-    secParams.Key = (signed char *)SECURITY_KEY;
-    secParams.KeyLen = strlen((const char *)secParams.Key);
-    secParams.Type = SECURITY_TYPE;
+    if (strlen(SSID) != 0) {
+        secParams.Key = (signed char *)SECURITY_KEY;
+        secParams.KeyLen = strlen((const char *)secParams.Key);
+        secParams.Type = SECURITY_TYPE;
 
-    ret = sl_WlanConnect((signed char*)SSID, strlen((const char*)SSID),
-            NULL, &secParams, NULL);
+        ret = sl_WlanConnect((signed char*)SSID, strlen((const char*)SSID),
+                NULL, &secParams, NULL);
+    }
 
     return (ret);
 }
@@ -353,7 +319,20 @@ static int wlanConnect()
  */
 static void initWiFi()
 {
-    setStationMode();
+    int32_t status;
+    uint32_t currButton;
+    uint32_t prevButton = 0;
+
+    status = sl_WifiConfig();
+    if (status < 0) {
+        /* sl_WifiConfig failed */
+        while (1);
+    }
+
+    /* Set connection variables to initial values */
+    deviceConnected = false;
+    ipAcquired = false;
+    provisioning = false;
 
     /* Host driver starts the network processor */
     if (sl_Start(NULL, NULL, NULL) < 0) {
@@ -369,17 +348,18 @@ static void initWiFi()
     /*
      * Wait for the WiFi to connect to an AP. If a profile for the AP in
      * use has not been stored yet, press Board_GPIO_BUTTON0 to start
-     * SmartConfig.
+     * provisioning.
      */
-    while ((deviceConnected != true) || (ipAcquired != true)) {
+    while ((deviceConnected != true) || (ipAcquired != true) ||
+            (provisioning == true)) {
         /*
-         *  Start SmartConfig if a button is pressed. This could be done with
+         *  Start provisioning if a button is pressed. This could be done with
          *  GPIO interrupts, but for simplicity polling is used to check the
          *  button.
          */
-        currButton = GPIO_read(Board_GPIO_BUTTON0);
+        currButton = GPIO_read(CONFIG_GPIO_BUTTON_0);
         if ((currButton == 0) && (prevButton != 0)) {
-            smartConfigFxn();
+            provisioningFxn();
         }
         prevButton = currButton;
         usleep(50000);

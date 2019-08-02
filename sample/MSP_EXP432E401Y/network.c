@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, Texas Instruments Incorporated
+ * Copyright (c) 2018-2019, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,22 +30,17 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <stdio.h>
 #include <stdbool.h>
 
-#include <ti/net/slnetsock.h>
-#include <ti/net/slnetif.h>
-#include <ti/ndk/slnetif/slnetifndk.h>
-#include <ti/net/slnetutils.h>
+#include <ti/ndk/inc/netmain.h>
+#include <ti/net/slnet.h>
 
 #include <ti/drivers/GPIO.h>
 
 #include <semaphore.h>
 
-#include "Board.h"
-
-/* Network interface priority and name */
-#define NDK_ETH_IF_PRI (5)
-#define NDK_ETH_IF_NAME "eth0"
+#include "ti_drivers_config.h"
 
 static sem_t sem;
 
@@ -57,10 +52,41 @@ extern void startSNTP(void);
  */
 void netIPAddrHook(uint32_t IPAddr, unsigned int IfIdx, unsigned int fAdd)
 {
+    uint32_t hostByteAddr;
+
+    if (fAdd) {
+        printf("Network Added: ");
+    }
+    else {
+        printf("Network Removed: ");
+    }
+
+    /* print the IP address that was added/removed */
+    hostByteAddr = NDK_ntohl(IPAddr);
+    printf("If-%d:%d.%d.%d.%d\n", IfIdx,
+            (uint8_t)(hostByteAddr>>24)&0xFF, (uint8_t)(hostByteAddr>>16)&0xFF,
+            (uint8_t)(hostByteAddr>>8)&0xFF, (uint8_t)hostByteAddr&0xFF);
+
     if (fAdd) {
         /* Signal that the NDK stack is ready and has an IP address */
         sem_post(&sem);
     }
+}
+
+/*
+ *  ======== serviceReportHook ========
+ *  NDK service report hook
+ */
+void serviceReportHook(uint32_t item, uint32_t status, uint32_t report, void *h)
+{
+    static char *taskName[] = {"Telnet", "HTTP", "NAT", "DHCPS", "DHCPC", "DNS"};
+    static char *reportStr[] = {"", "Running", "Updated", "Complete", "Fault"};
+    static char *statusStr[] =
+        {"Disabled", "Waiting", "IPTerm", "Failed","Enabled"};
+
+    printf("Service Status: %-9s: %-9s: %-9s: %03d\n",
+            taskName[item - 1], statusStr[status], reportStr[report / 256],
+            report & 0xFF);
 }
 
 /*
@@ -92,40 +118,21 @@ void Network_startup()
     /* Wait for the network stack to initialize and acquire an IP address */
     sem_wait(&sem);
 
-    /* The network stack is ready. Initialize the socket layer */
-    status = SlNetSock_init(0);
-    if (status != 0) {
-        /* SlNetSock_init failed */
-        while (1);
-    }
-
-    status = SlNetIf_init(0);
-    if (status != 0) {
-        /* SlNetIf_init failed */
-        while (1);
-    }
-
-    status = SlNetUtil_init(0);
-    if (status != 0) {
-        /* SlNetUtil_init failed */
-        while (1);
-    }
-
-    /* Register the NDK ethernet interface with the socket layer */
-    status = SlNetIf_add(SLNETIF_ID_2, NDK_ETH_IF_NAME,
-            (const SlNetIf_Config_t *)&SlNetIfConfigNDKSec, NDK_ETH_IF_PRI);
-    if (status != 0) {
-        /* SlNetIf_add failed */
+    /* initialize SlNet interface(s) */
+    status = ti_net_SlNet_initConfig();
+    if (status < 0)
+    {
+        /* ti_net_SlNet_initConfig failed */
         while (1);
     }
 
     /* Turn LED OFF. It will be used as a connection indicator */
-    GPIO_write(Board_GPIO_LED0, Board_GPIO_LED_OFF);
+    GPIO_write(CONFIG_GPIO_LED_0, CONFIG_GPIO_LED_OFF);
 
     /* Use SNTP to get the current time, as needed for SSL authentication */
     startSNTP();
 
-    GPIO_write(Board_GPIO_LED0, Board_GPIO_LED_ON);
+    GPIO_write(CONFIG_GPIO_LED_0, CONFIG_GPIO_LED_ON);
 }
 
 /*
