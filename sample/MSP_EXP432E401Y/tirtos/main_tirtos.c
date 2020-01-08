@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, Texas Instruments Incorporated
+ * Copyright (c) 2018-2020, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,12 +32,11 @@
 /*
  *  ======== main_tirtos.c ========
  */
-#include <stdio.h>
-
 #include <ti/sysbios/BIOS.h>
 #include <ti/sysbios/knl/Task.h>
 
 /* Driver configuration */
+#include <ti/display/Display.h>
 #include <ti/drivers/Board.h>
 #include <ti/drivers/GPIO.h>
 
@@ -55,6 +54,8 @@
 
 #define AZURE_IOT_ROOT_CA_OBJNAME "/cert/ms.pem"
 
+Display_Handle display;
+
 extern void ti_ndk_config_Global_startupFxn();
 
 /*
@@ -67,7 +68,7 @@ void *azureThreadFxn(void *arg0)
     /* Open an NDK file descriptor session */
     fdOpenSession(Task_self());
 
-    printf("Starting the simplesample_http example\n");
+    Display_printf(display, 0, 0, "Starting the simplesample_http example");
 
     /* Wait for an IP address, initialize the socket layer and get the time */
     Network_startup();
@@ -77,7 +78,7 @@ void *azureThreadFxn(void *arg0)
             AZURE_IOT_ROOT_CA_OBJNAME, strlen(AZURE_IOT_ROOT_CA_OBJNAME),
             (uint8_t *)certificates, strlen(certificates) + 1, SLNETIF_ID_2);
     if (status < 0) {
-        printf("Failed to load certificate object\n");
+        Display_printf(display, 0, 0, "Failed to load certificate object");
         while (1);
     }
 
@@ -100,7 +101,15 @@ int main(int argc, char *argv[])
 
     Board_init();
     GPIO_init();
+    Display_init();
     Network_init();
+
+    /* Open the Display for output */
+    display = Display_open(Display_Type_UART, NULL);
+    if (display == NULL) {
+        /* Failed to open the Display driver */
+        while (1);
+    }
 
     ti_ndk_config_Global_startupFxn();
 

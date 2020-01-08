@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2018-2020, Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,9 @@
  *  azure_iot.syscfg
  */
 
+/* ======== Components ======== */
+var Components = system.deviceData.board.components;
+
 /* ======== RTOS ======== */
 var RTOS = scripting.addModule("/ti/drivers/RTOS");
 RTOS.name = "TI-RTOS";
@@ -42,6 +45,11 @@ RTOS.name = "TI-RTOS";
 var SlNet = scripting.addModule("/ti/net/SlNet");
 var interface1 = SlNet.addInstance();
 interface1.id = 2;
+
+/* ======== Display ======== */
+var Display = scripting.addModule("/ti/display/Display");
+var display = Display.addInstance();
+display.$hardware = system.deviceData.board.components.XDS110UART;
 
 /* ======== GPIO ======== */
 var GPIO = scripting.addModule("/ti/drivers/GPIO");
@@ -57,13 +65,15 @@ General.ndkThreadStkSize = 2048;
 General.lowPriTaskDefStkSize = 2048;
 General.normPriTaskDefStkSize = 2048;
 General.highPriTaskDefStkSize = 2048;
-General.networkOpenHook = "netOpenHook";
 General.networkIPAddrHook = "netIPAddrHook";
-General.serviceReportHook = "serviceReportHook";
-General.emac.$name = "CONFIG_EMAC_0";
 /* --- TCP --- */
 General.tcpTxBufSize = 1024;
 General.tcpRxBufSize = 1024;
 General.tcpRxBufLimit = 2048;
 /* --- UDP --- */
 General.udpRxBufSize = 2048;
+
+/* ======== NIMU ======== */
+var eth0 = scripting.addModule("/ti/ndk/NIMU").addInstance();
+eth0.dhcpcServReportFxn = "serviceReport";
+eth0.emac.$name = "CONFIG_EMAC_0";

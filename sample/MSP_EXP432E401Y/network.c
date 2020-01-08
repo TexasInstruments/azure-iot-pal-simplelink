@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, Texas Instruments Incorporated
+ * Copyright (c) 2018-2020, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,12 +30,12 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <stdio.h>
 #include <stdbool.h>
 
 #include <ti/ndk/inc/netmain.h>
 #include <ti/net/slnet.h>
 
+#include <ti/display/Display.h>
 #include <ti/drivers/GPIO.h>
 
 #include <semaphore.h>
@@ -44,6 +44,7 @@
 
 static sem_t sem;
 
+extern Display_Handle display;
 extern void startSNTP(void);
 
 /*
@@ -55,15 +56,15 @@ void netIPAddrHook(uint32_t IPAddr, unsigned int IfIdx, unsigned int fAdd)
     uint32_t hostByteAddr;
 
     if (fAdd) {
-        printf("Network Added: ");
+        Display_printf(display, 0, 0, "Network Added: ");
     }
     else {
-        printf("Network Removed: ");
+        Display_printf(display, 0, 0, "Network Removed: ");
     }
 
     /* print the IP address that was added/removed */
     hostByteAddr = NDK_ntohl(IPAddr);
-    printf("If-%d:%d.%d.%d.%d\n", IfIdx,
+    Display_printf(display, 0, 0, "If-%d:%d.%d.%d.%d\n", IfIdx,
             (uint8_t)(hostByteAddr>>24)&0xFF, (uint8_t)(hostByteAddr>>16)&0xFF,
             (uint8_t)(hostByteAddr>>8)&0xFF, (uint8_t)hostByteAddr&0xFF);
 
@@ -74,27 +75,29 @@ void netIPAddrHook(uint32_t IPAddr, unsigned int IfIdx, unsigned int fAdd)
 }
 
 /*
- *  ======== serviceReportHook ========
- *  NDK service report hook
+ *  ======== serviceReport ========
+ *  NDK service report.  Initially, just reports common system issues.
  */
-void serviceReportHook(uint32_t item, uint32_t status, uint32_t report, void *h)
+void serviceReport(uint32_t item, uint32_t status, uint32_t report, void *h)
 {
-    static char *taskName[] = {"Telnet", "HTTP", "NAT", "DHCPS", "DHCPC", "DNS"};
+    static char *taskName[] = {"Telnet", "", "NAT", "DHCPS", "DHCPC", "DNS"};
     static char *reportStr[] = {"", "Running", "Updated", "Complete", "Fault"};
     static char *statusStr[] =
         {"Disabled", "Waiting", "IPTerm", "Failed","Enabled"};
 
-    printf("Service Status: %-9s: %-9s: %-9s: %03d\n",
+    Display_printf(display, 0, 0, "Service Status: %-9s: %-9s: %-9s: %03d\n",
             taskName[item - 1], statusStr[status], reportStr[report / 256],
             report & 0xFF);
-}
 
-/*
- *  ======== netOpenHook ========
- *  User defined NDK network open hook
- */
-void netOpenHook()
-{
+    /* report common system issues */
+    if ((item == CFGITEM_SERVICE_DHCPCLIENT) &&
+            (status == CIS_SRV_STATUS_ENABLED) &&
+            (report & NETTOOLS_STAT_FAULT)) {
+        Display_printf(display, 0, 0,
+                "DHCP Client initialization failed; check your network.\n");
+
+        while (1);
+    }
 }
 
 /*

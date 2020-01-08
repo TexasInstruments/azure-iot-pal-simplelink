@@ -1,4 +1,4 @@
-// Copyright (c) Texas Instruments. All rights reserved.
+// Copyright (c) 2020 Texas Instruments Incorporated. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 #include <stdio.h>
@@ -20,13 +20,21 @@
 #define HTTP_SECURE_PORT    443
 #define HEADER_TO_STR(x) (headerFieldStr[(x) & (~HTTPClient_REQUEST_HEADER_MASK)])
 
+#define OPTION_INCOMING_PROP "IncomingProperty"
+
 typedef struct {
     HTTPClient_Handle cli;
+    struct msgProperties *properties;
     char *prefixedHostName;
     char *x509Certificate;
     char *x509PrivateKey;
     bool  isConnected;
 } HTTPAPI_Object;
+
+struct msgProperties{
+    char *key;
+    struct msgProperties *next;
+};
 
 static const char * headerFieldStr[] = {
 "Age",
@@ -238,6 +246,7 @@ HTTPAPI_RESULT HTTPAPI_ExecuteRequest(HTTP_HANDLE handle,
     const char *method;
     bool moreFlag;
     HTTPClient_extSecParams esParams = {NULL, NULL, SL_SSL_CA_CERT};
+    struct msgProperties *props = apiH->properties;
 
     method = getHttpMethod(requestType);
 
@@ -317,6 +326,16 @@ HTTPAPI_RESULT HTTPAPI_ExecuteRequest(HTTP_HANDLE handle,
         }
     }
 
+    /* Add custom response headers for any expected properties */
+    while (props != NULL) {
+        ret = HTTPClient_setHeaderByName(cli, HTTPClient_CUSTOM_RESPONSE_HEADER,
+                props->key, NULL, 0, HTTPClient_HFIELD_PERSISTENT);
+        if (ret < 0) {
+            LogError("Failed setting response header, ret=%d", ret);
+        }
+        props = props->next;
+    }
+
     /* Send the request */
     ret = HTTPClient_sendRequest(cli, method,
             relativePath, (const char *)content, contentLength, 0);
@@ -368,6 +387,45 @@ HTTPAPI_RESULT HTTPAPI_ExecuteRequest(HTTP_HANDLE handle,
             result = HTTPAPI_HTTP_HEADERS_FAILED;
             goto headersDone;
         }
+    }
+
+    /* Process any properties received in the header */
+    props = apiH->properties;
+    while (props != NULL) {
+        contentBufLen = CONTENT_BUF_LEN;
+        ret = HTTPClient_getHeaderByName(cli, HTTPClient_CUSTOM_RESPONSE_HEADER,
+                props->key, contentBuf, &contentBufLen, 0);
+        if (ret == HTTPClient_EGETCUSOMHEADERBUFSMALL) {
+            /* TODO: content buffer is too small. Enlarge and try again?? */
+            LogError("Content buffer is too small for incoming header");
+            result = HTTPAPI_HTTP_HEADERS_FAILED;
+            goto headersDone;
+        }
+        else if (ret == HTTPClient_ENOHEADERNAMEDASINSERTED) {
+            /* No data for this header */
+            props = props->next;
+            continue;
+        }
+        else if (ret < 0) {
+            LogError("Failed to get header, ret=%d", ret);
+            result = HTTPAPI_HTTP_HEADERS_FAILED;
+            goto headersDone;
+        }
+        else if (contentBufLen == 0) {
+            /* No data for this header */
+            props = props->next;
+            continue;
+        }
+
+        hResult = HTTPHeaders_AddHeaderNameValuePair(responseHeadersHandle,
+                props->key, contentBuf);
+        if (hResult != HTTP_HEADERS_OK) {
+            LogError("Adding the response header failed");
+            result = HTTPAPI_HTTP_HEADERS_FAILED;
+            goto headersDone;
+        }
+
+        props = props->next;
     }
 
 headersDone:
@@ -479,6 +537,46 @@ HTTPAPI_RESULT HTTPAPI_SetOption(HTTP_HANDLE handle, const char* optionName,
             result = HTTPAPI_OK;
         }
     }
+    else if ((strncmp(OPTION_INCOMING_PROP, optionName,
+            strlen(OPTION_INCOMING_PROP)) == 0)) {
+        /*
+         * Allocate space for new incoming message property and add it to the
+         * list of expected properties to parse from responses.
+         */
+        struct msgProperties *node = malloc(sizeof(struct msgProperties));
+
+        if (node) {
+            int len = strlen("iothub-app-") + strlen(value) + 1;
+
+            node->key = malloc(len);
+            if (node->key) {
+                strcpy_s(node->key, len, "iothub-app-");
+                strcat_s(node->key, len, value);
+
+                if (apiH->properties == NULL) {
+                    node->next = NULL;
+                    apiH->properties = node;
+                }
+                else {
+                    node->next = apiH->properties;
+                    apiH->properties = node;
+                }
+
+                result = HTTPAPI_OK;
+            }
+            else {
+                free(node);
+                result = HTTPAPI_ALLOC_FAILED;
+                LogError("unable to allocate memory for the message properties"
+                        " key in HTTPAPI_SetOption");
+            }
+        }
+        else {
+            result = HTTPAPI_ALLOC_FAILED;
+            LogError("unable to allocate memory for the message properties"
+                    " in HTTPAPI_SetOption");
+        }
+    }
     else {
         result = HTTPAPI_INVALID_ARG;
         LogError("unknown option %s", optionName);
@@ -491,7 +589,7 @@ HTTPAPI_RESULT HTTPAPI_CloneOption(const char* optionName, const void* value,
         const void** savedValue)
 {
     HTTPAPI_RESULT result;
-    char *tempCert;
+    char *temp;
 
     if ((optionName == NULL) ||
             (value == NULL) ||
@@ -501,13 +599,15 @@ HTTPAPI_RESULT HTTPAPI_CloneOption(const char* optionName, const void* value,
     else if ((strcmp(OPTION_X509_ECC_CERT, optionName) == 0) ||
             (strcmp(SU_OPTION_X509_CERT, optionName) == 0) ||
             (strcmp(OPTION_X509_ECC_KEY, optionName) == 0) ||
-            (strcmp(SU_OPTION_X509_PRIVATE_KEY, optionName) == 0)) {
-        if (mallocAndStrcpy_s(&tempCert, value) != 0) {
+            (strcmp(SU_OPTION_X509_PRIVATE_KEY, optionName) == 0) ||
+            (strncmp(OPTION_INCOMING_PROP, optionName,
+                    strlen(OPTION_INCOMING_PROP)) == 0)) {
+        if (mallocAndStrcpy_s(&temp, value) != 0) {
             result = HTTPAPI_ALLOC_FAILED;
             LogError("memory allocation failed in HTTPAPI_CloneOption");
         }
         else {
-            *savedValue = tempCert;
+            *savedValue = temp;
             result = HTTPAPI_OK;
         }
     }

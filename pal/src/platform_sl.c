@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft. All rights reserved.
+// Copyright (c) 2020 Texas Instruments Incorporated. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 #include "tlsio_sl.h"
@@ -16,9 +16,12 @@ const IO_INTERFACE_DESCRIPTION* platform_get_default_tlsio(void)
 
 STRING_HANDLE platform_get_platform_info(PLATFORM_INFO_OPTION options)
 {
+    // No applicable options, so ignoring parameter
     (void)options;
 
-    return STRING_construct("(TI SimpleLink)");
+    // Expected format: "(<runtime name>; <operating system name>; <platform>)"
+
+    return STRING_construct("(native; TI SimpleLink; undefined)");
 }
 
 void platform_deinit(void)

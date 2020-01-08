@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, Texas Instruments Incorporated
+ * Copyright (c) 2017-2020, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,9 +31,9 @@
  */
 
 #include <time.h>
-#include <stdio.h>
 #include <unistd.h>
 
+#include <ti/display/Display.h>
 #include <ti/net/sntp/sntp.h>
 
 #include <ti/drivers/net/wifi/simplelink.h>
@@ -54,6 +54,8 @@
 
 /* Must wait at least 15 sec to retry NTP server (RFC 4330) */
 #define NTP_POLL_TIME 15
+
+extern Display_Handle display;
 
 /*
  *  ======== setNwpTime ========
@@ -103,11 +105,11 @@ void startSNTP(void)
         /* Get the time using the built in NTP server list: */
         retval = SNTP_getTime(NULL, 0, &timeval, &ntpTimeStamp);
         if (retval != 0) {
-            printf(
-                "startSNTP: couldn't get time (%ld), will retry in %d secs ...\n",
+            Display_printf(display, 0, 0,
+                "startSNTP: couldn't get time (%d), will retry in %d secs ...",
                 retval, NTP_POLL_TIME);
             sleep(NTP_POLL_TIME);
-            printf("startSNTP: retrying ...\n");
+            Display_printf(display, 0, 0, "startSNTP: retrying ...");
         }
 
         /* Save the current (NTP Epoch based) time */
@@ -123,7 +125,8 @@ void startSNTP(void)
     tspec.tv_nsec = 0;
     tspec.tv_sec = currentTimeUnix;
     if (clock_settime(CLOCK_REALTIME, &tspec) != 0) {
-        printf("startSNTP: Failed to set current time\n");
+        Display_printf(display, 0, 0,
+                "startSNTP: Failed to set current time\n");
         while(1);
     }
 
@@ -144,5 +147,6 @@ void startSNTP(void)
     setNwpTime(ts);
 
     /* Print out the time in calendar format: */
-    printf("Current time: %s\n", ctime(&ts));
+    Display_printf(display, 0, 0,
+            "startSNTP: Current time: %s\n", ctime(&ts));
 }

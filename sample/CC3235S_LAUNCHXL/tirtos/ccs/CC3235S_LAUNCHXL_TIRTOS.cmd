@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, Texas Instruments Incorporated
+ * Copyright (c) 2018-2020, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -60,6 +60,7 @@ SECTIONS
     .TI.ramfunc : > SRAM
     .data       : > SRAM
     .const      : > SRAM
+    .rodata     : > SRAM
 
     .sysmem     : > SRAM
     .cinit      : > SRAM

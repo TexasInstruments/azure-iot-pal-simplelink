@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, Texas Instruments Incorporated
+ * Copyright (c) 2017-2020, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,11 +32,10 @@
 /*
  *  ======== main_tirtos.c ========
  */
-#include <stdio.h>
-
 #include <ti/sysbios/BIOS.h>
 
 /* Driver configuration */
+#include <ti/display/Display.h>
 #include <ti/drivers/Board.h>
 #include <ti/drivers/GPIO.h>
 #include <ti/drivers/SPI.h>
@@ -55,6 +54,9 @@
 #include "network.h"
 
 #define AZURE_IOT_ROOT_CA_FILENAME "/cert/ms.pem"
+
+Display_Handle display;
+
 /*
  * The following macro is disabled by default. This is done to prevent the
  * certificate files from being written to flash every time the program
@@ -111,16 +113,18 @@ void flashCerts(uint8_t *certName, uint8_t *buffer, uint32_t bufflen)
     /* If the cert doesn't exist, write it (or overwrite if specified to) */
     if (slStatus == SL_ERROR_FS_FILE_NOT_EXISTS || overwriteCerts == true) {
 
-        printf("Flashing certificate file ...");
+        Display_printf(display, 0, 0, "Flashing certificate file ...");
 
         status = flashFile((const char *)certName, buffer, bufflen);
 
         if (status < 0) {
-            printf("Error: Could not write file %s to flash (%d)\n",
+            Display_printf(display, 0, 0,
+                    "Error: Could not write file %s to flash (%d)",
                     certName, status);
             while (1);
         }
-        printf("successfully wrote file %s to flash\n", certName);
+        Display_printf(display, 0, 0, "successfully wrote file %s to flash",
+                certName);
     }
 }
 
@@ -133,7 +137,7 @@ void *azureThreadFxn(void *arg0)
     uint16_t           len = sizeof(ipV4);
     uint16_t           dhcpIsOn;
 
-    printf("Starting the simplesample_http example\n");
+    Display_printf(display, 0, 0, "Starting the simplesample_http example");
 
     /* Wait for an IP address, initialize the socket layer and get the time */
     Network_startup();
@@ -141,10 +145,11 @@ void *azureThreadFxn(void *arg0)
     /* Retrieve & print the IP address */
     sl_NetCfgGet(SL_NETCFG_IPV4_STA_ADDR_MODE, &dhcpIsOn, &len,
             (unsigned char *)&ipV4);
-    printf("CC32XX has connected to AP and acquired an IP address.\n");
-    printf("IP Address: %ld.%ld.%ld.%ld\n", SL_IPV4_BYTE(ipV4.Ip, 3),
-            SL_IPV4_BYTE(ipV4.Ip, 2), SL_IPV4_BYTE(ipV4.Ip, 1),
-            SL_IPV4_BYTE(ipV4.Ip, 0));
+    Display_printf(display, 0, 0,
+            "CC32XX has connected to AP and acquired an IP address.\n");
+    Display_printf(display, 0, 0, "IP Address: %ld.%ld.%ld.%ld\n",
+            SL_IPV4_BYTE(ipV4.Ip, 3), SL_IPV4_BYTE(ipV4.Ip, 2),
+            SL_IPV4_BYTE(ipV4.Ip, 1), SL_IPV4_BYTE(ipV4.Ip, 0));
 
     /* Flash Certificate Files */
     flashCerts((uint8_t *)AZURE_IOT_ROOT_CA_FILENAME, (uint8_t *)certificates,
@@ -168,6 +173,7 @@ int main(int argc, char *argv[])
     Board_init();
     GPIO_init();
     SPI_init();
+    Display_init();
     Network_init();
 
     /* Configure the LED and button pins */
@@ -175,6 +181,13 @@ int main(int argc, char *argv[])
     GPIO_setConfig(CONFIG_GPIO_BUTTON_0, GPIO_CFG_IN_PU | GPIO_CFG_IN_INT_FALLING);
     /* Turn on user LED */
     GPIO_write(CONFIG_GPIO_LED_0, CONFIG_GPIO_LED_ON);
+
+    /* Open the Display for output */
+    display = Display_open(Display_Type_UART, NULL);
+    if (display == NULL) {
+        /* Failed to open the Display driver */
+        while (1);
+    }
 
     /* Create the sl_Task thread */
     pthread_attr_init(&pthreadAttrs);
@@ -191,7 +204,7 @@ int main(int argc, char *argv[])
         while (1);
     }
 
-    /* Create the AZURE thread */
+    /* Create the Azure thread */
     status = pthread_attr_setstacksize(&pthreadAttrs, 4096);
     if (status != 0) {
         /* Error setting stack size */

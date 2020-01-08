@@ -1,4 +1,4 @@
-// Copyright (c) Texas Instruments. All rights reserved.
+// Copyright (c) 2020 Texas Instruments Incorporated. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 #include <stdlib.h>
@@ -543,7 +543,7 @@ int tlsio_sl_setoption(CONCRETE_IO_HANDLE tls_io, const char* optionName,
         result = SlNetSock_secAttribSet(tls_io_instance->sec_attrib_hdl,
                 SLNETSOCK_SEC_ATTRIB_LOCAL_CERT,
                 (void *)tls_io_instance->x509_certificate,
-                strlen(value));
+                strlen(tls_io_instance->x509_certificate) + 1);
     }
     else if ((strcmp(OPTION_X509_ECC_KEY, optionName) == 0) ||
             (strcmp(SU_OPTION_X509_PRIVATE_KEY, optionName) == 0)) {
@@ -563,7 +563,7 @@ int tlsio_sl_setoption(CONCRETE_IO_HANDLE tls_io, const char* optionName,
         result = SlNetSock_secAttribSet(tls_io_instance->sec_attrib_hdl,
                 SLNETSOCK_SEC_ATTRIB_PRIVATE_KEY,
                 (void *)tls_io_instance->x509_private_key,
-                strlen(value));
+                strlen(tls_io_instance->x509_private_key) + 1);
     }
 
     return result;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, Texas Instruments Incorporated
+ * Copyright (c) 2017-2020, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,8 +30,8 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 /*
- *  ======== MSP_EXP432E401Y.cmd ========
- *  Define the memory block start/length for the MSP_EXP432E401Y M4
+ *  ======== MSP_EXP432E401Y_TIRTOS.cmd ========
+ *  Define the memory block start/length for the MSP_EXP432E401Y M4F
  */
 --stack_size=1024   /* C stack is also used for ISR stack */
 
@@ -49,6 +49,7 @@ SECTIONS
 {
     .text   :   > FLASH
     .const  :   > FLASH
+    .rodata :   > FLASH
     .cinit  :   > FLASH
     .pinit  :   > FLASH
     .init_array : > FLASH

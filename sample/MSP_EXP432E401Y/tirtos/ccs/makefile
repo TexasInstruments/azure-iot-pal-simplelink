@@ -1,5 +1,5 @@
 #
-#  Copyright (c) 2018-2019, Texas Instruments Incorporated
+#  Copyright (c) 2018-2020, Texas Instruments Incorporated
 #  All rights reserved.
 #
 #  Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,9 @@ TREE_ROOT = ../../../..
 include $(TREE_ROOT)/build_all/products.mak
 include makedefs
 
-CFLAGS :=  -I. -I../.. -I../../.. -I$(TREE_ROOT)/sdk/inc/ \
+CFLAGS :=  -I. -I../.. -I../../.. \
+    -DUSE_BALTIMORE_CERT \
+    -I$(TREE_ROOT)/sdk/inc/ \
     -I$(TREE_ROOT)/sdk/certs/ -I$(TREE_ROOT)/sdk/c-utility/inc/ \
     -I$(TREE_ROOT)/sdk/c-utility/deps/azure-macro-utils-c/inc \
     -I$(TREE_ROOT)/sdk/c-utility/deps/umock-c/inc \
@@ -47,7 +49,7 @@ LIBS =  $(TREE_ROOT)/build_all/sdk/lib/ccs/m4f/common_sl_release.a \
     $(TREE_ROOT)/build_all/sdk/lib/ccs/m4f/serializer_sl_release.a \
     $(TREE_ROOT)/build_all/pal/lib/ccs/m4f/pal_sl_release.a
 
-VPATH = ..:../..:../../..:$(TREE_ROOT)/certs
+VPATH = ..:../..:../../..:$(TREE_ROOT)/sdk/certs
 
 %.o : %.c
 

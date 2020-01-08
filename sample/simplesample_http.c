@@ -13,9 +13,14 @@ and removing calls to _DoWork will yield the same results. */
 
 #include "azure_c_shared_utility/threadapi.h"
 #include "azure_c_shared_utility/platform.h"
+#include "azure_c_shared_utility/xlogging.h"
 #include "serializer.h"
 #include "iothub_client_ll.h"
 #include "iothubtransporthttp.h"
+
+#include <ti/display/Display.h>
+
+extern Display_Handle display;
 
 #ifdef MBED_BUILD_TIMESTAMP
 #define SET_TRUSTED_CERT_IN_SAMPLES
@@ -46,24 +51,60 @@ END_NAMESPACE(WeatherStation);
 
 static char propText[1024];
 
+/*
+ * To enable logging in the Azure library the following steps must be done:
+ *   1. Link against the debug version of the Azure libraries, e.g.
+ *      pal_sl_debug.a, common_sl_debug.a, ...
+ *   2. Uncomment the following #define ENABLE_LOGGING
+ */
+// #define ENABLE_LOGGING
+
+#ifdef ENABLE_LOGGING
+void Display_log(LOG_CATEGORY log_category, const char* file, const char* func,
+        int line, unsigned int options, const char* format, ...)
+{
+    if ((display != NULL) && (display->fxnTablePtr != NULL) &&
+            (display->fxnTablePtr->vprintfFxn != NULL)) {
+        va_list args;
+
+        switch (log_category) {
+            case AZ_LOG_ERROR:
+                Display_printf(display, 0, 0, "Error: File:%s Func:%s Line:%d ",
+                        file, func, line);
+                break;
+            default:
+                break;
+        }
+
+        va_start(args, format);
+        /*
+         * Display currently doesn't provide a Display_vprintf() function
+         * (TIDRIVERS-4111), so use the underlying one.
+         */
+        display->fxnTablePtr->vprintfFxn(display, 0, 0, (char *)format, args);
+        va_end(args);
+    }
+}
+#endif // ENABLE_LOGGING
+
 EXECUTE_COMMAND_RESULT TurnFanOn(ContosoAnemometer* device)
 {
     (void)device;
-    (void)printf("Turning fan on.\r\n");
+    Display_printf(display, 0, 0, "Turning fan on.");
     return EXECUTE_COMMAND_SUCCESS;
 }
 
 EXECUTE_COMMAND_RESULT TurnFanOff(ContosoAnemometer* device)
 {
     (void)device;
-    (void)printf("Turning fan off.\r\n");
+    Display_printf(display, 0, 0, "Turning fan off.");
     return EXECUTE_COMMAND_SUCCESS;
 }
 
 EXECUTE_COMMAND_RESULT SetAirResistance(ContosoAnemometer* device, int Position)
 {
     (void)device;
-    (void)printf("Setting Air Resistance Position to %d.\r\n", Position);
+    Display_printf(display, 0, 0, "Setting Air Resistance Position to %d.", Position);
     return EXECUTE_COMMAND_SUCCESS;
 }
 
@@ -71,9 +112,9 @@ void sendCallback(IOTHUB_CLIENT_CONFIRMATION_RESULT result, void* userContextCal
 {
     unsigned int messageTrackingId = (unsigned int)(uintptr_t)userContextCallback;
 
-    (void)printf("Message Id: %u Received.\r\n", messageTrackingId);
+    Display_printf(display, 0, 0, "Message Id: %u Received.", messageTrackingId);
 
-    (void)printf("Result Call Back Called! Result is: %s \r\n", MU_ENUM_TO_STRING(IOTHUB_CLIENT_CONFIRMATION_RESULT, result));
+    Display_printf(display, 0, 0, "Result Call Back Called! Result is: %s", MU_ENUM_TO_STRING(IOTHUB_CLIENT_CONFIRMATION_RESULT, result));
 }
 
 static void sendMessage(IOTHUB_CLIENT_LL_HANDLE iotHubClientHandle, const unsigned char* buffer, size_t size)
@@ -82,17 +123,17 @@ static void sendMessage(IOTHUB_CLIENT_LL_HANDLE iotHubClientHandle, const unsign
     IOTHUB_MESSAGE_HANDLE messageHandle = IoTHubMessage_CreateFromByteArray(buffer, size);
     if (messageHandle == NULL)
     {
-        printf("unable to create a new IoTHubMessage\r\n");
+        Display_printf(display, 0, 0, "unable to create a new IoTHubMessage");
     }
     else
     {
         if (IoTHubClient_LL_SendEventAsync(iotHubClientHandle, messageHandle, sendCallback, (void*)(uintptr_t)messageTrackingId) != IOTHUB_CLIENT_OK)
         {
-            printf("failed to hand over the message to IoTHubClient");
+            Display_printf(display, 0, 0, "failed to hand over the message to IoTHubClient");
         }
         else
         {
-            printf("IoTHubClient accepted the message for delivery\r\n");
+            Display_printf(display, 0, 0, "IoTHubClient accepted the message for delivery");
         }
         IoTHubMessage_Destroy(messageHandle);
     }
@@ -108,7 +149,7 @@ static IOTHUBMESSAGE_DISPOSITION_RESULT IoTHubMessage(IOTHUB_MESSAGE_HANDLE mess
     size_t size;
     if (IoTHubMessage_GetByteArray(message, &buffer, &size) != IOTHUB_MESSAGE_OK)
     {
-        printf("unable to IoTHubMessage_GetByteArray\r\n");
+        Display_printf(display, 0, 0, "unable to IoTHubMessage_GetByteArray");
         result = IOTHUBMESSAGE_ABANDONED;
     }
     else
@@ -117,7 +158,7 @@ static IOTHUBMESSAGE_DISPOSITION_RESULT IoTHubMessage(IOTHUB_MESSAGE_HANDLE mess
         char* temp = malloc(size + 1);
         if (temp == NULL)
         {
-            printf("failed to malloc\r\n");
+            Display_printf(display, 0, 0, "failed to malloc");
             result = IOTHUBMESSAGE_ABANDONED;
         }
         else
@@ -139,15 +180,19 @@ static IOTHUBMESSAGE_DISPOSITION_RESULT IoTHubMessage(IOTHUB_MESSAGE_HANDLE mess
 
 void simplesample_http_run(void)
 {
+#ifdef ENABLE_LOGGING
+    xlogging_set_log_function(Display_log);
+#endif // ENABLE_LOGGING
+
     if (platform_init() != 0)
     {
-        printf("Failed to initialize the platform.\r\n");
+        Display_printf(display, 0, 0, "Failed to initialize the platform.");
     }
     else
     {
         if (serializer_init(NULL) != SERIALIZER_OK)
         {
-            (void)printf("Failed on serializer_init\r\n");
+            Display_printf(display, 0, 0, "Failed on serializer_init");
         }
         else
         {
@@ -160,7 +205,7 @@ void simplesample_http_run(void)
 
             if (iotHubClientHandle == NULL)
             {
-                (void)printf("Failed on IoTHubClient_LL_Create\r\n");
+                Display_printf(display, 0, 0, "Failed on IoTHubClient_LL_Create");
             }
             else
             {
@@ -174,27 +219,27 @@ void simplesample_http_run(void)
 
                 if (IoTHubClient_LL_SetOption(iotHubClientHandle, "MinimumPollingTime", &minimumPollingTime) != IOTHUB_CLIENT_OK)
                 {
-                    printf("failure to set option \"MinimumPollingTime\"\r\n");
+                    Display_printf(display, 0, 0, "failure to set option \"MinimumPollingTime\"");
                 }
 
 #ifdef SET_TRUSTED_CERT_IN_SAMPLES
                 // For mbed add the certificate information
                 if (IoTHubClient_LL_SetOption(iotHubClientHandle, "TrustedCerts", certificates) != IOTHUB_CLIENT_OK)
                 {
-                    (void)printf("failure to set option \"TrustedCerts\"\r\n");
+                    Display_printf(display, 0, 0, "failure to set option \"TrustedCerts\"");
                 }
 #endif // SET_TRUSTED_CERT_IN_SAMPLES
 
                 myWeather = CREATE_MODEL_INSTANCE(WeatherStation, ContosoAnemometer);
                 if (myWeather == NULL)
                 {
-                    (void)printf("Failed on CREATE_MODEL_INSTANCE\r\n");
+                    Display_printf(display, 0, 0, "Failed on CREATE_MODEL_INSTANCE");
                 }
                 else
                 {
                     if (IoTHubClient_LL_SetMessageCallback(iotHubClientHandle, IoTHubMessage, myWeather) != IOTHUB_CLIENT_OK)
                     {
-                        printf("unable to IoTHubClient_SetMessageCallback\r\n");
+                        Display_printf(display, 0, 0, "unable to IoTHubClient_SetMessageCallback");
                     }
                     else
                     {
@@ -207,14 +252,14 @@ void simplesample_http_run(void)
                             size_t destinationSize;
                             if (SERIALIZE(&destination, &destinationSize, myWeather->DeviceId, myWeather->WindSpeed, myWeather->Temperature, myWeather->Humidity) != CODEFIRST_OK)
                             {
-                                (void)printf("Failed to serialize\r\n");
+                                Display_printf(display, 0, 0, "Failed to serialize");
                             }
                             else
                             {
                                 IOTHUB_MESSAGE_HANDLE messageHandle = IoTHubMessage_CreateFromByteArray(destination, destinationSize);
                                 if (messageHandle == NULL)
                                 {
-                                    printf("unable to create a new IoTHubMessage\r\n");
+                                    Display_printf(display, 0, 0, "unable to create a new IoTHubMessage");
                                 }
                                 else
                                 {
@@ -222,16 +267,16 @@ void simplesample_http_run(void)
                                     (void)sprintf_s(propText, sizeof(propText), myWeather->Temperature > 28 ? "true" : "false");
                                     if (Map_AddOrUpdate(propMap, "temperatureAlert", propText) != MAP_OK)
                                     {
-                                        printf("ERROR: Map_AddOrUpdate Failed!\r\n");
+                                        Display_printf(display, 0, 0, "ERROR: Map_AddOrUpdate Failed!");
                                     }
 
                                     if (IoTHubClient_LL_SendEventAsync(iotHubClientHandle, messageHandle, sendCallback, (void*)1) != IOTHUB_CLIENT_OK)
                                     {
-                                        printf("failed to hand over the message to IoTHubClient");
+                                        Display_printf(display, 0, 0, "failed to hand over the message to IoTHubClient");
                                     }
                                     else
                                     {
-                                        printf("IoTHubClient accepted the message for delivery\r\n");
+                                        Display_printf(display, 0, 0, "IoTHubClient accepted the message for delivery");
                                     }
 
                                     IoTHubMessage_Destroy(messageHandle);

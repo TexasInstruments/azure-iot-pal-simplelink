@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, Texas Instruments Incorporated
+ * Copyright (c) 2016-2020, Texas Instruments Incorporated
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -61,6 +61,7 @@ SECTIONS
     .text       : > FLASH
     .TI.ramfunc : {} load=FLASH, run=SRAM, table(BINIT)
     .const      : > FLASH
+    .rodata     : > FLASH
     .cinit      : > FLASH
     .pinit      : > FLASH
     .init_array : > FLASH

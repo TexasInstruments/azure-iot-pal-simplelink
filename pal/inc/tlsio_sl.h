@@ -1,8 +1,12 @@
-// Copyright (c) Texas Instruments. All rights reserved.
+// Copyright (c) 2020 Texas Instruments Incorporated. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 #ifndef TLSIO_SL_H
 #define TLSIO_SL_H
+
+#include "azure_c_shared_utility/xio.h"
+#include "azure_c_shared_utility/xlogging.h"
+#include "azure_c_shared_utility/optionhandler.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -10,10 +14,6 @@ extern "C" {
 #else
 #include <stddef.h>
 #endif /* __cplusplus */
-
-#include "azure_c_shared_utility/xio.h"
-#include "azure_c_shared_utility/xlogging.h"
-#include "azure_c_shared_utility/optionhandler.h"
 
 extern CONCRETE_IO_HANDLE tlsio_sl_create(void* io_create_parameters);
 extern void tlsio_sl_destroy(CONCRETE_IO_HANDLE tls_io);

@@ -1,4 +1,4 @@
-// Copyright (c) Texas Instruments. All rights reserved.
+// Copyright (c) 2020 Texas Instruments Incorporated. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 #ifndef CERT_SL_H

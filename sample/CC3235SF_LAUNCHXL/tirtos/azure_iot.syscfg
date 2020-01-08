@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018-2019, Texas Instruments Incorporated - http://www.ti.com
+ * Copyright (c) 2018-2020, Texas Instruments Incorporated - http://www.ti.com
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,9 @@
  *  azure_iot.syscfg
  */
 
+/* ======== Components ======== */
+var Components = system.deviceData.board.components;
+
 /* ======== RTOS ======== */
 var RTOS = scripting.addModule("/ti/drivers/RTOS");
 RTOS.name = "TI-RTOS";
@@ -45,6 +48,11 @@ var SimpleLinkWifi = scripting.addModule("/ti/drivers/net/wifi/SimpleLinkWifi");
 var SlNet = scripting.addModule("/ti/net/SlNet");
 var interface1 = SlNet.addInstance();
 interface1.id = 1;
+
+/* ======== Display ======== */
+var Display = scripting.addModule("/ti/display/Display");
+var display = Display.addInstance();
+display.$hardware = system.deviceData.board.components.XDS110UART;
 
 /* ======== GPIO ======== */
 var GPIO = scripting.addModule("/ti/drivers/GPIO");

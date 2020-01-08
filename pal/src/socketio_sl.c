@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft. All rights reserved.
+// Copyright (c) 2020 Texas Instruments Incorporated. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 /*
@@ -64,7 +64,7 @@ typedef struct SOCKET_IO_INSTANCE_TAG
     int port;
     IO_STATE io_state;
     SINGLYLINKEDLIST_HANDLE pending_io_list;
-    unsigned char recv_bytes[RECEIVE_BYTES_VALUE];
+    unsigned char recv_bytes[XIO_RECEIVE_BUFFER_SIZE];
 } SOCKET_IO_INSTANCE;
 
 /*this function will clone an option given by name and value*/
@@ -574,7 +574,7 @@ void socketio_dowork(CONCRETE_IO_HANDLE socket_io)
             ssize_t received = 0;
             do
             {
-                received = recv(socket_io_instance->socket, socket_io_instance->recv_bytes, RECEIVE_BYTES_VALUE, 0);
+                received = recv(socket_io_instance->socket, socket_io_instance->recv_bytes, XIO_RECEIVE_BUFFER_SIZE, 0);
                 if (received > 0)
                 {
                     if (socket_io_instance->on_bytes_received != NULL)
